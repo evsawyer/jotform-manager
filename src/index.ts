@@ -35,6 +35,8 @@ interface FormConfig {
 	hiddenFields?: Array<{
 		name: string;
 		text: string;
+		defaultValue?: string;
+		readonly?: boolean;
 	}>;
 	widgets?: Array<{
 		type: 'userAgent' | 'geoStamp';
@@ -47,6 +49,8 @@ interface FormConfig {
 		subject?: string;
 		from?: string;
 	};
+	// Webhook configuration
+	webhookURL?: string;
 	// Conditional logic
 	enableConditionals?: boolean;
 	showPersonalInfoOnlyIfEligible?: boolean;
@@ -89,6 +93,8 @@ interface TemplateFormConfig {
 	hiddenFields?: Array<{
 		name: string;
 		text: string;
+		defaultValue?: string;
+		readonly?: boolean;
 	}>;
 	widgets?: Array<{
 		type: 'userAgent' | 'geoStamp';
@@ -100,6 +106,8 @@ interface TemplateFormConfig {
 		subject?: string;
 		from?: string;
 	};
+	// Webhook configuration
+	webhookURL?: string;
 }
 
 interface UpdateFormConfig {
@@ -411,7 +419,8 @@ async function handleCreateForm(request: Request, env: Env, corsHeaders: Record<
 					validation: 'None',
 					size: '20',
 					required: 'No',
-					readonly: 'No'
+					readonly: field.readonly ? 'Yes' : 'No',
+					...(field.defaultValue ? { defaultValue: field.defaultValue } : {})
 				});
 			}
 			// Reorder all other questions
@@ -426,7 +435,7 @@ async function handleCreateForm(request: Request, env: Env, corsHeaders: Record<
 				if (widget.type === 'userAgent') {
 					questions.push({
 						type: 'control_widget',
-						text: '', // Empty text so it doesn't show as a field label
+						text: 'userAgent', // Empty text so it doesn't show as a field label
 						order: String(orderCounter++),
 						name: widget.name,
 						cfname: 'Get User Agent',
@@ -437,7 +446,7 @@ async function handleCreateForm(request: Request, env: Env, corsHeaders: Record<
 				} else if (widget.type === 'geoStamp') {
 					questions.push({
 						type: 'control_widget',
-						text: '', // Empty text so it doesn't show as a field label
+						text: 'geoStamp', // Empty text so it doesn't show as a field label
 						order: String(orderCounter++),
 						name: widget.name,
 						cfname: 'Geo Stamp',
@@ -582,11 +591,29 @@ async function handleCreateForm(request: Request, env: Env, corsHeaders: Record<
 		}
 
 		const result = await jotformResponse.json() as any;
+		const newFormId = result.content?.id;
+
+		// Add webhook if specified
+		if (config.webhookURL && newFormId) {
+			const webhookFormData = new FormData();
+			webhookFormData.append('webhookURL', config.webhookURL);
+			
+			const webhookResponse = await fetch(`https://api.jotform.com/form/${newFormId}/webhooks?apiKey=${apiKey}`, {
+				method: 'POST',
+				body: webhookFormData
+			});
+
+			if (!webhookResponse.ok) {
+				console.warn('Failed to add webhook:', await webhookResponse.text());
+				// Don't fail the entire request if webhook fails
+			}
+		}
 		
 		return new Response(JSON.stringify({
 			success: true,
 			formId: result.content?.id,
 			formUrl: result.content?.url,
+			webhookAdded: !!config.webhookURL,
 			data: result
 		}), {
 			status: 200,
@@ -866,7 +893,8 @@ async function handleCreateFormFromTemplate(request: Request, env: Env, corsHead
 					validation: 'None',
 					size: '20',
 					required: 'No',
-					readonly: 'No'
+					readonly: field.readonly ? 'Yes' : 'No',
+					...(field.defaultValue ? { defaultValue: field.defaultValue } : {})
 				};
 			}
 		}
@@ -1070,7 +1098,23 @@ async function handleCreateFormFromTemplate(request: Request, env: Env, corsHead
 			});
 		}
 
-		// Step 5: Get the final form details
+		// Step 5: Add webhook if specified
+		if (config.webhookURL) {
+			const webhookFormData = new FormData();
+			webhookFormData.append('webhookURL', config.webhookURL);
+			
+			const webhookResponse = await fetch(`https://api.jotform.com/form/${newFormId}/webhooks?apiKey=${apiKey}`, {
+				method: 'POST',
+				body: webhookFormData
+			});
+
+			if (!webhookResponse.ok) {
+				console.warn('Failed to add webhook:', await webhookResponse.text());
+				// Don't fail the entire request if webhook fails
+			}
+		}
+
+		// Step 6: Get the final form details
 		const finalFormResponse = await fetch(`https://api.jotform.com/form/${newFormId}?apiKey=${apiKey}`);
 		const finalFormResult = await finalFormResponse.json() as any;
 
@@ -1080,6 +1124,7 @@ async function handleCreateFormFromTemplate(request: Request, env: Env, corsHead
 			formId: newFormId,
 			formUrl: finalFormResult.content?.url || `https://form.jotform.com/${newFormId}`,
 			templateFormId: config.templateFormId,
+			webhookAdded: !!config.webhookURL,
 			data: finalFormResult
 		}), {
 			status: 200,

@@ -1,6 +1,6 @@
 {
   "templateFormId": "252306171401039",
-  "title": "Legal Claim Eligibility Form - e.l.f. Cosmetics",
+  "title": "TEST9",
   "eligibilityQuestions": [
     {
       "text": "Are you 18 years of age or older?",
@@ -60,22 +60,13 @@
     { "name": "utm_medium", "text": "utm_medium" },
     { "name": "utm_term", "text": "utm_term" },
     { "name": "utm_content", "text": "utm_content" },
-    { "name": "client_id", "text": "client_id" },
-    { "name": "project_id", "text": "project_id" },
+    { "name": "client_id", "text": "client_id", "defaultValue": "10001", "readonly": true },
+    { "name": "project_id", "text": "project_id", "defaultValue": "12208308", "readonly": true },
     { "name": "case_type", "text": "case_type" }
-  ],
-  "widgets": [
-    {
-      "type": "userAgent",
-      "name": "userAgentString"
-    },
-    {
-      "type": "geoStamp",
-      "name": "geoStamp"
-    }
   ],
   "emailNotification": {
     "to": "notifications@lawfirm.com",
     "subject": "New Legal Claim Submission - e.l.f. Cosmetics"
-  }
+  },
+  "webhookURL": "https://form-docket-sync.blopez.workers.dev/webhook"
 }
