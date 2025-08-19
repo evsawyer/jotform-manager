@@ -50,6 +50,14 @@ interface FormConfig {
 	// Conditional logic
 	enableConditionals?: boolean;
 	showPersonalInfoOnlyIfEligible?: boolean;
+	// Custom CSS
+	customCSS?: string;
+	// Line layout settings
+	lineLayout?: {
+		lineSpacing?: string; // Vertical padding (0-50px)
+		horizontalPadding?: string; // Horizontal padding
+		verticalPadding?: string; // Alternative name for lineSpacing
+	};
 }
 
 interface UpdateFormConfig {
@@ -403,13 +411,17 @@ async function handleCreateForm(request: Request, env: Env, corsHeaders: Record<
 				background: 'rgba(255,255,255,0)',
 				pageColor: '#F3F3FE',
 				alignment: 'Top',
-				lineSpacing: '4',
+				lineSpacing: config.lineLayout?.lineSpacing || config.lineLayout?.verticalPadding || '4',
 				styles: 'nova',
 				themeID: '5e6b428acc8c4e222d1beb91',
 				showProgressBar: 'disable',
 				errorNavigation: 'Yes',
 				highlightLine: 'Enabled',
 				responsive: 'No',
+				// Add custom CSS if provided
+				...(config.customCSS ? { injectCSS: config.customCSS } : {}),
+				// Add horizontal padding if specified
+				...(config.lineLayout?.horizontalPadding ? { horizontalPadding: config.lineLayout.horizontalPadding } : {}),
 				...config.properties
 			},
 			questions: questions,

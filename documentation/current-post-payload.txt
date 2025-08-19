@@ -1,8 +1,11 @@
 {
     "title": "TEST4",
-    "apiKey": "72ba65e1459e161e20d7af92da87f9fb",
     "enableConditionals": true,
     "showPersonalInfoOnlyIfEligible": true,
+    "lineLayout": {
+        "verticalPadding": "0"
+    },
+    "customCSS": "@media screen and (max-width: 480px){\n    .form-all .form-multiple-column[data-columncount=\"2\"] .form-radio-item {\n        width : 50% !important;\n        max-width : 50% !important;\n        display : inline-block !important;\n        box-sizing : border-box !important;\n        vertical-align : top !important;\n        padding : 5px !important;\n        margin : 0 !important;\n    }\n\n}\n\n.form-label.form-label-auto {\n    display : block;\n    float : none;\n    text-align : left;\n    width : 100%;\n}\n\n/* Remove side padding except a little on the left */\nhtml, body, .supernova, .form-section {\n    margin : 0 !important;\n    padding : 0 !important;\n}\n\n.form-all {\n    width : 100% !important;\n    max-width : 100% !important;\n    box-sizing : border-box !important;\n    padding-left : 8px !important;\n    padding-right : 8px !important;\n}\n\n/* Remove spacing between form questions */\n.form-line,\n.form-label.form-label-top {\n    text-align : left !important;\n}\n\n/* Reduce vertical space around the Next/Back buttons */\n.form-pagebreak {\n    margin-top : 4px !important;\n    margin-bottom : 4px !important;\n    padding-top : 0 !important;\n    padding-bottom : 0 !important;\n}\n\n/* Hide the top error summary bar */\n#errorNavigation, \n.error-navigation-bar, \n.error-navigation-container, \n#form-warning-message {\n    display : none !important;\n}",
     "eligibilityQuestions": [
       {
         "text": "Are you 18 years of age or older?",
