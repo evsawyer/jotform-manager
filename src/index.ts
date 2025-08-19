@@ -367,28 +367,30 @@ async function handleCreateForm(request: Request, env: Env, corsHeaders: Record<
 			}
 		}
 
-		// Add widgets
+		// Add widgets (invisible data collectors)
 		if (config.widgets) {
 			for (const widget of config.widgets) {
 				if (widget.type === 'userAgent') {
 					questions.push({
 						type: 'control_widget',
-						text: widget.text,
+						text: '', // Empty text so it doesn't show as a field label
 						order: String(orderCounter++),
 						name: widget.name,
 						cfname: 'Get User Agent',
 						selectedField: '543ea3eb3066feaa30000036',
-						static: 'No'
+						static: 'No',
+						hidden: 'Yes' // Hide the widget from view
 					});
 				} else if (widget.type === 'geoStamp') {
 					questions.push({
 						type: 'control_widget',
-						text: widget.text,
+						text: '', // Empty text so it doesn't show as a field label
 						order: String(orderCounter++),
 						name: widget.name,
 						cfname: 'Geo Stamp',
 						selectedField: '5935688a725d1797050002e7',
-						static: 'No'
+						static: 'No',
+						hidden: 'Yes' // Hide the widget from view
 					});
 				}
 			}
