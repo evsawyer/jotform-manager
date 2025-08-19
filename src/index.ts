@@ -181,15 +181,7 @@ async function handleCreateForm(request: Request, env: Env, corsHeaders: Record<
 			}
 		}
 
-		// Add page break after eligibility questions
-		if (config.eligibilityQuestions && config.eligibilityQuestions.length > 0) {
-			questions.push({
-				type: 'control_pagebreak',
-				text: 'Page Break',
-				order: String(orderCounter++),
-				name: 'pageBreak1'
-			});
-		}
+		// Skip page break - keep everything on same page for conditionals
 
 		// Add legal text before personal info
 		if (config.legalTextBlocks) {
@@ -320,20 +312,22 @@ async function handleCreateForm(request: Request, env: Env, corsHeaders: Record<
 					order: String(orderCounter++),
 					name: sig.name,
 					required: sig.required ? 'Yes' : 'No',
-					size: sig.size || '300', // Default signature box size
+					size: sig.size || '600', // Wider signature box by default
 					labelAlign: 'Auto',
 					validation: 'None'
 				});
 			}
 		}
 
-		// Add captcha
+		// Add captcha (invisible reCAPTCHA)
 		if (config.includeCaptcha) {
 			questions.push({
 				type: 'control_captcha',
 				text: 'Please verify that you are human',
 				order: String(orderCounter++),
-				name: 'captcha'
+				name: 'captcha',
+				captchaType: 'invisible', // Use invisible reCAPTCHA
+				useInvisibleRecaptcha: 'Yes'
 			});
 		}
 
@@ -442,16 +436,21 @@ async function handleCreateForm(request: Request, env: Env, corsHeaders: Record<
 				eligibilityQuestionIds.push(String(i + 2)); // +2 because header is 1, eligibility starts at 2
 			}
 			
-			// Get personal info question IDs (they come after eligibility + legal text)
+			// Get personal info question IDs (they come after eligibility + first legal text, no page break)
 			let personalInfoStartOrder = config.eligibilityQuestions.length + 2; // header + eligibility questions
 			if (config.legalTextBlocks && config.legalTextBlocks.length > 0) {
-				personalInfoStartOrder += 2; // page break + first legal text
+				personalInfoStartOrder += 1; // first legal text (no page break)
 			}
 			
 			if (config.personalInfoFields?.includeName) personalInfoQuestionIds.push(String(personalInfoStartOrder++));
 			if (config.personalInfoFields?.includeAddress) personalInfoQuestionIds.push(String(personalInfoStartOrder++));
 			if (config.personalInfoFields?.includeEmail) personalInfoQuestionIds.push(String(personalInfoStartOrder++));
 			if (config.personalInfoFields?.includePhone) personalInfoQuestionIds.push(String(personalInfoStartOrder++));
+			
+			// Also include the first legal text block in the conditional
+			if (config.legalTextBlocks && config.legalTextBlocks.length > 0) {
+				personalInfoQuestionIds.unshift(String(config.eligibilityQuestions.length + 2)); // First legal text
+			}
 			
 			// Create condition: Show personal info only if all eligibility questions are "Yes"
 			if (personalInfoQuestionIds.length > 0) {

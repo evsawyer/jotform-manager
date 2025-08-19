@@ -1,0 +1,84 @@
+{
+    "title": "TEST4",
+    "apiKey": "72ba65e1459e161e20d7af92da87f9fb",
+    "enableConditionals": true,
+    "showPersonalInfoOnlyIfEligible": true,
+    "eligibilityQuestions": [
+      {
+        "text": "Are you 18 years of age or older?",
+        "name": "eligibility_question_1",
+        "required": true
+      },
+      {
+        "text": "Did you make a purchase on https://www.elfcosmetics.com in the last 2 years?",
+        "name": "eligibility_question_2",
+        "required": true
+      },
+      {
+        "text": "Did you live in California when you made the purchase?",
+        "name": "eligibility_question_3",
+        "required": true
+      }
+    ],
+    "legalTextBlocks": [
+      {
+        "content": "<p><span style=\"font-size: 14pt;\"><strong>✅ You May Qualify! Let's Get Started</strong></span></p>\r\n<p>This will cost you nothing out of pocket. We get paid only if we recover an award or settlement on your behalf. If we don't win, you don't pay.</p>\r\n<p><span style=\"font-size: 14pt;\"><strong>To continue, please provide your contact information.</strong></span></p>\r\n<p>Your privacy and the protection of your data are important to us. We will only use your information to pursue this claim on your behalf. For more information, please see our privacy policy.</p>",
+        "name": "qualification_message"
+      },
+      {
+        "content": "<p><strong>One Step to go...</strong></p>\r\n<p>You will electronically sign our Contingency Fee Agreement, which means:</p>\r\n<ul style=\"list-style-type: disc;\">\r\n<li>No upfront costs or out-of-pocket payments.</li>\r\n<li>We never ask for credit card or payment information.</li>\r\n<li>Our fee is a percentage of what we recover for you.</li>\r\n<li>If we don't win, you pay nothing.</li>\r\n</ul>\r\n<p><br />By continuing through this form, you represent that you do not own, work for, represent, or contemplate representing the company that is the subject of this arbitration.</p>\r\n<p><br />We consider the following retainer agreement attorney work product and privileged.</p>\r\n<p><br />Any employee of a law firm viewing this document and not seeking representation <br />is in violation of the Model Rules of Professional Conduct, including, but not limited to Rule 4.1.</p>",
+        "name": "agreement_intro"
+      },
+      {
+        "content": "<p><strong>Client Name</strong>: {name}</p>\r\n<p><strong>Client Email:</strong> {email}</p>\r\n<p>Re: <strong>{name} v. e.l.f. Cosmetics, Inc.</strong></p>\r\n<p>Dear {name}</p>\r\n<p>This is an agreement (the \"Agreement\") between you, Bryson Harris Suciu & DeMay PLLC (\"Bryson\"), and Milberg Coleman Bryson Phillips Grossman LLC (\"MCBPG\") (collectively, the \"Firm\") for legal representation regarding your claim(s) against e.l.f. Cosmetics, Inc. (\"e.l.f.\") for its violation of your privacy rights pursuant to the California Invasion of Privacy Act (\"CIPA\").</p>\r\n<p><br />You understand and authorize the Firm to proceed with filing your claim(s) as an individual arbitration. Arbitration is a simplified means of pursuing legal claims, where the claim is decided by an arbitrator rather than a judge or jury. You authorize the Firm to settle your individual claim(s) with e.l.f. for a reasonable amount and execute a release of your individual claim(s) on your behalf. However, this agreement also authorizes the Firm to settle and release your claim(s) as a part of a class action if e.l.f. chooses to do so. In the event that the Firm enters a settlement with your authority and you choose not to participate in the settlement, you may reject the settlement and the Firm may withdraw its representation of you. You further authorize the Firm to represent additional individuals who have claims that are the same or similar to yours against e.l.f.</p>\r\n<p><br />The Firm will handle this matter with a contingent fee of the greater of either forty percent (40%), as allowed by state law, of any recovery obtained in this matter or total attorneys' fees awarded by the arbitrator or court. The Firm reserves the right to associate with co-counsel, but the fee will be split between the Firm and any additional firm(s) they associate with.</p>\r\n<p><br />The Firm will advance all costs incurred by the Firm during this litigation (e.g., filing fees, travel, etc.). The Firm will be reimbursed for these costs if, and only if, they ultimately obtain a recovery on your behalf. Advanced costs are deducted after the calculation of the contingent fee.</p>\r\n<p><br />The Firm will keep you informed about the progress of your claim as it moves forward. We will do so via phone calls, emails, and SMS messages. By signing this retainer agreement, you consent to the Firm calling and sending case-related SMS messages to the cell phone number you provided when signing up for representation. If at any time you no longer wish to receive phone calls from the Firm, you can email us at arbitration.clientcare@brysonpllc.com. Similarly, if you no longer wish to receive SMS messages from the Firm, you can reply \"STOP\" to any SMS message to opt out of receiving additional messages.</p>\r\n<p><br />You authorize the Firm to withdraw from representation if they determine for sufficient reasons that your claim(s) should not continue. Regardless, the Firm will maintain the file on this matter for at least six years. If requested, these will be returned to you after the conclusion of the representation.</p>\r\n<p><br />Finally, the Firm does not make any promises or guarantees regarding the outcome of your claim(s). If you have any questions about the foregoing, please advise. We would appreciate your returning a signed copy of this engagement letter to us for our files.</p>\r\n<p>Sincerely,</p>\r\n<p><img src=\"https://www.jotform.com/uploads/ScoutAdmin/form_files/blf_signature.689e4da60f7c54.72536971.png\" alt=\"\" width=\"229\" height=\"57\" /></p>",
+        "name": "retainer_agreement"
+      },
+      {
+        "content": "<p><strong>CERTIFICATION</strong></p>\r\n<p>I, the undersigned, hereby certify that I had an account with e.l.f. and visited www.elfCosmetics.com within the last two years and made a purchase on the website. I further certify that, if needed, I can and will produce evidence (for example, an email or account screenshot) making a purchase from www.elfCosmetics.com within the last two years.</p>\r\n<p><br />I further certify that I have not retained any other law firm(s) to pursue my claim(s) against e.l.f. and that I will not retain any other law firm(s) to do so. I understand that, if I do retain or have retained another law firm to pursue my claim(s), the Firm may terminate their representation of me in connection with my claim(s) against e.l.f.</p>\r\n<p><strong>COMMUNICATIONS CONSENT</strong></p>\r\n<p>I, the undersigned, hereby consent to the Firm keeping me informed about the progress of my claim by calling, emailing, and sending case-related SMS messages to the cell phone number that I provided to the Firm when signing up for representation. I understand that, if at any time I no longer wish to receive phone calls from the Firm, I can email arbitration.clientcare@brysonpllc.com. I also understand that, if I no longer wish to receive SMS messages from the Firm, I can reply \"STOP\" to any SMS message to opt out of receiving additional messages.</p>\r\n<p><br />Additionally, I consent to the Firm calling, emailing, and sending me SMS messages concerning other matters, lawsuits, and investigations that may be relevant or of interest to me.</p>",
+        "name": "certification"
+      },
+      {
+        "content": "<p>* Please note that the company against which you are retaining the Firm to pursue individual arbitration claims on your behalf may require submission of a notice letter personally signed by you to begin the dispute resolution process. So that the Firm can start this process, by signing the retainer agreement, it is your intent to provide the Firm with your electronic signature and your consent to include your electronic signature in the notice letter to be sent on your behalf to the company identified in the retainer agreement as the party against whom the Firm has agreed to represent you in connection with your individual arbitration. This is the sole limited purpose for which you are giving the Firm legal authority to utilize your electronic signature.</p>",
+        "name": "signature_notice"
+      }
+    ],
+    "personalInfoFields": {
+      "includeName": true,
+      "includeAddress": true,
+      "includeEmail": true,
+      "includePhone": true
+    },
+    "signatureFields": [
+      {
+        "text": "Signature*",
+        "name": "signature",
+        "required": true,
+        "size": "600"
+      }
+    ],
+    "hiddenFields": [
+      { "name": "utm_campaign", "text": "utm_campaign" },
+      { "name": "utm_source", "text": "utm_source" },
+      { "name": "utm_medium", "text": "utm_medium" },
+      { "name": "utm_term", "text": "utm_term" },
+      { "name": "utm_content", "text": "utm_content" },
+      { "name": "client_id", "text": "client_id" },
+      { "name": "project_id", "text": "project_id" },
+      { "name": "case_type", "text": "case_type" }
+    ],
+    "widgets": [
+      {
+        "type": "userAgent",
+        "name": "userAgentString"
+      },
+      {
+        "type": "geoStamp",
+        "name": "geoStamp"
+      }
+    ],
+    "includeCaptcha": true,
+    "emailNotification": {
+      "to": "notifications@lawfirm.com",
+      "subject": "New Legal Claim Submission - e.l.f. Cosmetics"
+    }
+  }
