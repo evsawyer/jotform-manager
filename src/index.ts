@@ -50,13 +50,55 @@ interface FormConfig {
 	// Conditional logic
 	enableConditionals?: boolean;
 	showPersonalInfoOnlyIfEligible?: boolean;
-	// Custom CSS
+	// Custom CSS (can use either customCSS or injectCSS)
 	customCSS?: string;
+	injectCSS?: string;
 	// Line layout settings
 	lineLayout?: {
 		lineSpacing?: string; // Vertical padding (0-50px)
 		horizontalPadding?: string; // Horizontal padding
 		verticalPadding?: string; // Alternative name for lineSpacing
+	};
+}
+
+interface TemplateFormConfig {
+	templateFormId: string;
+	apiKey?: string;
+	title: string;
+	eligibilityQuestions?: Array<{
+		text: string;
+		name: string;
+		required?: boolean;
+	}>;
+	personalInfoFields?: {
+		includeName?: boolean;
+		includeAddress?: boolean;
+		includeEmail?: boolean;
+		includePhone?: boolean;
+	};
+	legalTextBlocks?: Array<{
+		content: string;
+		name?: string;
+	}>;
+	signatureFields?: Array<{
+		text: string;
+		name: string;
+		required?: boolean;
+		size?: string;
+	}>;
+	hiddenFields?: Array<{
+		name: string;
+		text: string;
+	}>;
+	widgets?: Array<{
+		type: 'userAgent' | 'geoStamp';
+		name: string;
+	}>;
+	includeCaptcha?: boolean;
+	emailNotification?: {
+		to: string;
+		subject?: string;
+		from?: string;
 	};
 }
 
@@ -133,6 +175,15 @@ export default {
 					});
 				}
 				return handleUpdateForm(request, env, corsHeaders);
+			
+			case '/create-form-from-template':
+				if (request.method !== 'POST') {
+					return new Response('Method not allowed', { 
+						status: 405,
+						headers: corsHeaders 
+					});
+				}
+				return handleCreateFormFromTemplate(request, env, corsHeaders);
 			
 			case '/message':
 				return new Response('Hello, World!', { headers: corsHeaders });
@@ -418,8 +469,9 @@ async function handleCreateForm(request: Request, env: Env, corsHeaders: Record<
 				errorNavigation: 'Yes',
 				highlightLine: 'Enabled',
 				responsive: 'No',
-				// Add custom CSS if provided
+				// Add custom CSS if provided (support both customCSS and injectCSS)
 				...(config.customCSS ? { injectCSS: config.customCSS } : {}),
+				...(config.injectCSS ? { injectCSS: config.injectCSS } : {}),
 				// Add horizontal padding if specified
 				...(config.lineLayout?.horizontalPadding ? { horizontalPadding: config.lineLayout.horizontalPadding } : {}),
 				...config.properties
@@ -712,6 +764,323 @@ async function handleUpdateForm(request: Request, env: Env, corsHeaders: Record<
 			success: true,
 			message: `Form ${config.updateType} updated successfully`,
 			data: result
+		}), {
+			status: 200,
+			headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+		});
+
+	} catch (error) {
+		return new Response(JSON.stringify({ 
+			error: 'Internal server error',
+			message: error instanceof Error ? error.message : 'Unknown error'
+		}), {
+			status: 500,
+			headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+		});
+	}
+}
+
+async function handleCreateFormFromTemplate(request: Request, env: Env, corsHeaders: Record<string, string>): Promise<Response> {
+	try {
+		const config: TemplateFormConfig = await request.json();
+		
+		// Use API key from config if provided, otherwise use environment secret
+		const apiKey = config.apiKey || env.JOTFORM_API_KEY;
+		
+		if (!apiKey) {
+			return new Response(JSON.stringify({ error: 'API key not configured' }), {
+				status: 400,
+				headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+			});
+		}
+
+		if (!config.templateFormId) {
+			return new Response(JSON.stringify({ error: 'Template form ID is required' }), {
+				status: 400,
+				headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+			});
+		}
+
+		// Step 1: Clone the template form
+		const cloneResponse = await fetch(`https://api.jotform.com/form/${config.templateFormId}/clone?apiKey=${apiKey}`, {
+			method: 'POST'
+		});
+
+		if (!cloneResponse.ok) {
+			const errorText = await cloneResponse.text();
+			return new Response(JSON.stringify({ 
+				error: 'Failed to clone template form',
+				details: errorText 
+			}), {
+				status: cloneResponse.status,
+				headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+			});
+		}
+
+		const cloneResult = await cloneResponse.json() as any;
+		const newFormId = cloneResult.content?.id;
+
+		if (!newFormId) {
+			return new Response(JSON.stringify({ 
+				error: 'Failed to get new form ID from clone response',
+				details: cloneResult 
+			}), {
+				status: 500,
+				headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+			});
+		}
+
+		// Step 2: Update the cloned form's title
+		if (config.title) {
+			const titleFormData = new FormData();
+			titleFormData.append('properties[title]', config.title);
+			
+			await fetch(`https://api.jotform.com/form/${newFormId}/properties?apiKey=${apiKey}`, {
+				method: 'POST',
+				body: titleFormData
+			});
+		}
+
+		// Step 3: Build new questions based on config
+		const newQuestions: Record<string, any> = {};
+		let questionIndex = 1;
+
+		// Add header
+		newQuestions[questionIndex++] = {
+			type: 'control_head',
+			text: config.title || 'Form Title',
+			order: String(questionIndex - 1),
+			name: 'header'
+		};
+
+		// Add hidden fields first
+		if (config.hiddenFields) {
+			for (const field of config.hiddenFields) {
+				newQuestions[questionIndex++] = {
+					type: 'control_textbox',
+					text: field.text,
+					order: String(questionIndex - 1),
+					name: field.name,
+					hidden: 'Yes',
+					labelAlign: 'Auto',
+					validation: 'None',
+					size: '20',
+					required: 'No',
+					readonly: 'No'
+				};
+			}
+		}
+
+		// Add widgets (invisible)
+		if (config.widgets) {
+			for (const widget of config.widgets) {
+				if (widget.type === 'userAgent') {
+					newQuestions[questionIndex++] = {
+						type: 'control_widget',
+						text: '',
+						order: String(questionIndex - 1),
+						name: widget.name,
+						cfname: 'Get User Agent',
+						selectedField: '543ea3eb3066feaa30000036',
+						static: 'No',
+						hidden: 'Yes'
+					};
+				} else if (widget.type === 'geoStamp') {
+					newQuestions[questionIndex++] = {
+						type: 'control_widget',
+						text: '',
+						order: String(questionIndex - 1),
+						name: widget.name,
+						cfname: 'Geo Stamp',
+						selectedField: '5935688a725d1797050002e7',
+						static: 'No',
+						hidden: 'Yes'
+					};
+				}
+			}
+		}
+
+		// Add eligibility questions
+		if (config.eligibilityQuestions) {
+			for (const eq of config.eligibilityQuestions) {
+				newQuestions[questionIndex++] = {
+					type: 'control_radio',
+					text: eq.text,
+					order: String(questionIndex - 1),
+					name: eq.name,
+					required: eq.required ? 'Yes' : 'No',
+					options: 'Yes|No',
+					labelAlign: 'Auto',
+					validation: 'None'
+				};
+			}
+		}
+
+		// Add first legal text block (qualification message)
+		if (config.legalTextBlocks && config.legalTextBlocks.length > 0) {
+			const firstBlock = config.legalTextBlocks[0];
+			newQuestions[questionIndex++] = {
+				type: 'control_text',
+				text: firstBlock.content,
+				order: String(questionIndex - 1),
+				name: firstBlock.name || 'qualification_message'
+			};
+		}
+
+		// Add personal info fields
+		if (config.personalInfoFields) {
+			if (config.personalInfoFields.includeName) {
+				newQuestions[questionIndex++] = {
+					type: 'control_fullname',
+					text: 'Name *',
+					order: String(questionIndex - 1),
+					name: 'name',
+					required: 'Yes',
+					labelAlign: 'Auto',
+					validation: 'None',
+					sublabels: JSON.stringify({
+						prefix: 'Prefix',
+						first: 'First Name',
+						middle: 'Middle Name',
+						last: 'Last Name',
+						suffix: 'Suffix'
+					}),
+					size: '20',
+					readonly: 'No'
+				};
+			}
+
+			if (config.personalInfoFields.includeAddress) {
+				newQuestions[questionIndex++] = {
+					type: 'control_address',
+					text: 'Address *',
+					order: String(questionIndex - 1),
+					name: 'address',
+					required: 'Yes',
+					labelAlign: 'Auto',
+					validation: 'None',
+					sublabels: JSON.stringify({
+						addr_line1: 'Street Address',
+						addr_line2: 'Street Address Line 2',
+						city: 'City',
+						state: 'State',
+						postal: 'Zip Code',
+						country: 'Country'
+					}),
+					size: '20',
+					readonly: 'No'
+				};
+			}
+
+			if (config.personalInfoFields.includeEmail) {
+				newQuestions[questionIndex++] = {
+					type: 'control_email',
+					text: 'Email *',
+					order: String(questionIndex - 1),
+					name: 'email',
+					required: 'Yes',
+					labelAlign: 'Auto',
+					validation: 'Email',
+					size: '20',
+					readonly: 'No'
+				};
+			}
+
+			if (config.personalInfoFields.includePhone) {
+				newQuestions[questionIndex++] = {
+					type: 'control_phone',
+					text: 'Phone Number *',
+					order: String(questionIndex - 1),
+					name: 'phoneNumber',
+					required: 'Yes',
+					labelAlign: 'Auto',
+					validation: 'None',
+					countryCode: 'No',
+					inputMask: 'enable',
+					inputMaskValue: '(###) ###-####',
+					size: '20',
+					readonly: 'No',
+					sublabels: JSON.stringify({
+						country: 'Country Code',
+						area: 'Area Code',
+						phone: 'Phone Number',
+						full: 'Phone Number',
+						masked: 'Please enter a valid phone number.'
+					})
+				};
+			}
+		}
+
+		// Add page break before signature section
+		newQuestions[questionIndex++] = {
+			type: 'control_pagebreak',
+			text: 'Page Break',
+			order: String(questionIndex - 1),
+			name: 'pageBreak2'
+		};
+
+		// Add remaining legal text blocks
+		if (config.legalTextBlocks) {
+			for (let i = 1; i < config.legalTextBlocks.length; i++) {
+				const block = config.legalTextBlocks[i];
+				newQuestions[questionIndex++] = {
+					type: 'control_text',
+					text: block.content,
+					order: String(questionIndex - 1),
+					name: block.name || `legalText${i}`
+				};
+			}
+		}
+
+		// Add signature fields
+		if (config.signatureFields) {
+			for (const sig of config.signatureFields) {
+				newQuestions[questionIndex++] = {
+					type: 'control_signature',
+					text: sig.text,
+					order: String(questionIndex - 1),
+					name: sig.name,
+					required: sig.required ? 'Yes' : 'No',
+					size: sig.size || '600',
+					labelAlign: 'Auto',
+					validation: 'None'
+				};
+			}
+		}
+
+		// Step 4: Replace all questions in the cloned form
+		const questionsData = { questions: newQuestions };
+		
+		const updateQuestionsResponse = await fetch(`https://api.jotform.com/form/${newFormId}/questions?apiKey=${apiKey}`, {
+			method: 'PUT',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify(questionsData)
+		});
+
+		if (!updateQuestionsResponse.ok) {
+			const errorText = await updateQuestionsResponse.text();
+			return new Response(JSON.stringify({ 
+				error: 'Failed to update questions in cloned form',
+				details: errorText 
+			}), {
+				status: updateQuestionsResponse.status,
+				headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+			});
+		}
+
+		// Step 5: Get the final form details
+		const finalFormResponse = await fetch(`https://api.jotform.com/form/${newFormId}?apiKey=${apiKey}`);
+		const finalFormResult = await finalFormResponse.json() as any;
+
+		return new Response(JSON.stringify({
+			success: true,
+			message: 'Form created from template successfully',
+			formId: newFormId,
+			formUrl: finalFormResult.content?.url || `https://form.jotform.com/${newFormId}`,
+			templateFormId: config.templateFormId,
+			data: finalFormResult
 		}), {
 			status: 200,
 			headers: { ...corsHeaders, 'Content-Type': 'application/json' }
