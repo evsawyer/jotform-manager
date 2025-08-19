@@ -30,6 +30,7 @@ interface FormConfig {
 		text: string;
 		name: string;
 		required?: boolean;
+		size?: string; // For signature box size
 	}>;
 	hiddenFields?: Array<{
 		name: string;
@@ -46,6 +47,40 @@ interface FormConfig {
 		subject?: string;
 		from?: string;
 	};
+	// Conditional logic
+	enableConditionals?: boolean;
+	showPersonalInfoOnlyIfEligible?: boolean;
+}
+
+interface UpdateFormConfig {
+	formId: string;
+	apiKey?: string;
+	updateType: 'properties' | 'questions' | 'conditions';
+	// For property updates
+	properties?: Record<string, any>;
+	// For question updates
+	questionUpdates?: Array<{
+		questionId: string;
+		action: 'update' | 'delete' | 'add';
+		questionData?: any;
+		newOrder?: number;
+	}>;
+	// For adding new questions
+	newQuestions?: Array<JotFormQuestion>;
+	// For conditional updates
+	conditions?: Array<{
+		id?: string;
+		terms: Array<{
+			field: string;
+			operator: string;
+			value: string;
+		}>;
+		actions: Array<{
+			field: string;
+			visibility: 'Show' | 'Hide';
+		}>;
+		link: 'All' | 'Any';
+	}>;
 }
 
 interface JotFormQuestion {
@@ -81,6 +116,15 @@ export default {
 					});
 				}
 				return handleCreateForm(request, env, corsHeaders);
+			
+			case '/update-form':
+				if (request.method !== 'POST') {
+					return new Response('Method not allowed', { 
+						status: 405,
+						headers: corsHeaders 
+					});
+				}
+				return handleUpdateForm(request, env, corsHeaders);
 			
 			case '/message':
 				return new Response('Hello, World!', { headers: corsHeaders });
@@ -275,7 +319,10 @@ async function handleCreateForm(request: Request, env: Env, corsHeaders: Record<
 					text: sig.text,
 					order: String(orderCounter++),
 					name: sig.name,
-					required: sig.required ? 'Yes' : 'No'
+					required: sig.required ? 'Yes' : 'No',
+					size: sig.size || '300', // Default signature box size
+					labelAlign: 'Auto',
+					validation: 'None'
 				});
 			}
 		}
@@ -348,7 +395,7 @@ async function handleCreateForm(request: Request, env: Env, corsHeaders: Record<
 		}
 
 		// Prepare the form data for JotForm API with properties matching the original
-		const formData = {
+		const formData: any = {
 			properties: {
 				title: config.title || 'New Form',
 				height: '600',
@@ -379,6 +426,63 @@ async function handleCreateForm(request: Request, env: Env, corsHeaders: Record<
 				html: string;
 			}>
 		};
+
+		// Add conditional logic if enabled
+		if (config.enableConditionals && config.showPersonalInfoOnlyIfEligible && config.eligibilityQuestions) {
+			const conditions = [];
+			
+			// Find question IDs for eligibility questions (they start from order 1)
+			const eligibilityQuestionIds = [];
+			const personalInfoQuestionIds = [];
+			
+			// Get eligibility question IDs (assuming they're the first questions after header)
+			for (let i = 0; i < config.eligibilityQuestions.length; i++) {
+				eligibilityQuestionIds.push(String(i + 2)); // +2 because header is 1, eligibility starts at 2
+			}
+			
+			// Get personal info question IDs (they come after eligibility + legal text)
+			let personalInfoStartOrder = config.eligibilityQuestions.length + 2; // header + eligibility questions
+			if (config.legalTextBlocks && config.legalTextBlocks.length > 0) {
+				personalInfoStartOrder += 2; // page break + first legal text
+			}
+			
+			if (config.personalInfoFields?.includeName) personalInfoQuestionIds.push(String(personalInfoStartOrder++));
+			if (config.personalInfoFields?.includeAddress) personalInfoQuestionIds.push(String(personalInfoStartOrder++));
+			if (config.personalInfoFields?.includeEmail) personalInfoQuestionIds.push(String(personalInfoStartOrder++));
+			if (config.personalInfoFields?.includePhone) personalInfoQuestionIds.push(String(personalInfoStartOrder++));
+			
+			// Create condition: Show personal info only if all eligibility questions are "Yes"
+			if (personalInfoQuestionIds.length > 0) {
+				const terms = eligibilityQuestionIds.map((qid, index) => ({
+					id: `term_${Date.now()}_${index}`,
+					field: qid,
+					operator: 'equals',
+					value: 'Yes',
+					isError: false
+				}));
+				
+				const actions = personalInfoQuestionIds.map((qid, index) => ({
+					id: `action_${Date.now()}_${index}`,
+					visibility: 'Show',
+					isError: false,
+					field: qid
+				}));
+				
+				conditions.push({
+					id: `condition_${Date.now()}`,
+					index: '0',
+					link: 'All',
+					priority: '0',
+					type: 'field',
+					terms: JSON.stringify(terms),
+					action: JSON.stringify(actions)
+				});
+			}
+			
+			if (conditions.length > 0) {
+				formData.properties.conditions = conditions;
+			}
+		}
 
 		// Add email notification if configured
 		if (config.emailNotification) {
@@ -418,6 +522,182 @@ async function handleCreateForm(request: Request, env: Env, corsHeaders: Record<
 			success: true,
 			formId: result.content?.id,
 			formUrl: result.content?.url,
+			data: result
+		}), {
+			status: 200,
+			headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+		});
+
+	} catch (error) {
+		return new Response(JSON.stringify({ 
+			error: 'Internal server error',
+			message: error instanceof Error ? error.message : 'Unknown error'
+		}), {
+			status: 500,
+			headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+		});
+	}
+}
+
+async function handleUpdateForm(request: Request, env: Env, corsHeaders: Record<string, string>): Promise<Response> {
+	try {
+		const config: UpdateFormConfig = await request.json();
+		
+		// Use API key from config if provided, otherwise use environment secret
+		const apiKey = config.apiKey || env.JOTFORM_API_KEY;
+		
+		if (!apiKey) {
+			return new Response(JSON.stringify({ error: 'API key not configured' }), {
+				status: 400,
+				headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+			});
+		}
+
+		if (!config.formId) {
+			return new Response(JSON.stringify({ error: 'Form ID is required' }), {
+				status: 400,
+				headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+			});
+		}
+
+		let jotformResponse;
+		
+		switch (config.updateType) {
+			case 'properties':
+				if (!config.properties) {
+					return new Response(JSON.stringify({ error: 'Properties data required for properties update' }), {
+						status: 400,
+						headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+					});
+				}
+				
+				// Update form properties
+				const formData = new FormData();
+				for (const [key, value] of Object.entries(config.properties)) {
+					formData.append(`properties[${key}]`, String(value));
+				}
+				
+				jotformResponse = await fetch(`https://api.jotform.com/form/${config.formId}/properties?apiKey=${apiKey}`, {
+					method: 'POST',
+					body: formData
+				});
+				break;
+				
+			case 'questions':
+				if (config.questionUpdates) {
+					// Handle question updates/deletions first
+					for (const update of config.questionUpdates) {
+						if (update.action === 'delete') {
+							// Delete question
+							await fetch(`https://api.jotform.com/form/${config.formId}/question/${update.questionId}?apiKey=${apiKey}`, {
+								method: 'DELETE'
+							});
+						} else if (update.action === 'update' && update.questionData) {
+							// Update question
+							const questionFormData = new FormData();
+							for (const [key, value] of Object.entries(update.questionData)) {
+								questionFormData.append(`question[${key}]`, String(value));
+							}
+							
+							await fetch(`https://api.jotform.com/form/${config.formId}/question/${update.questionId}?apiKey=${apiKey}`, {
+								method: 'POST',
+								body: questionFormData
+							});
+						}
+					}
+				}
+				
+				// Add new questions if provided
+				if (config.newQuestions && config.newQuestions.length > 0) {
+					const questionsData = {
+						questions: config.newQuestions.reduce((acc, question, index) => {
+							acc[String(index + 1)] = question;
+							return acc;
+						}, {} as Record<string, any>)
+					};
+					
+					jotformResponse = await fetch(`https://api.jotform.com/form/${config.formId}/questions?apiKey=${apiKey}`, {
+						method: 'PUT',
+						headers: {
+							'Content-Type': 'application/json'
+						},
+						body: JSON.stringify(questionsData)
+					});
+				} else {
+					// Just return success for question updates/deletions
+					return new Response(JSON.stringify({
+						success: true,
+						message: 'Questions updated successfully'
+					}), {
+						status: 200,
+						headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+					});
+				}
+				break;
+				
+			case 'conditions':
+				if (!config.conditions) {
+					return new Response(JSON.stringify({ error: 'Conditions data required for conditions update' }), {
+						status: 400,
+						headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+					});
+				}
+				
+				// Format conditions for JotForm API
+				const formattedConditions = config.conditions.map((condition, index) => ({
+					id: condition.id || `condition_${Date.now()}_${index}`,
+					index: String(index),
+					link: condition.link,
+					priority: String(index),
+					type: 'field',
+					terms: JSON.stringify(condition.terms.map((term, termIndex) => ({
+						id: `term_${Date.now()}_${termIndex}`,
+						field: term.field,
+						operator: term.operator,
+						value: term.value,
+						isError: false
+					}))),
+					action: JSON.stringify(condition.actions.map((action, actionIndex) => ({
+						id: `action_${Date.now()}_${actionIndex}`,
+						visibility: action.visibility,
+						isError: false,
+						field: action.field
+					})))
+				}));
+				
+				// Update form properties with conditions
+				const conditionsFormData = new FormData();
+				conditionsFormData.append('properties[conditions]', JSON.stringify(formattedConditions));
+				
+				jotformResponse = await fetch(`https://api.jotform.com/form/${config.formId}/properties?apiKey=${apiKey}`, {
+					method: 'POST',
+					body: conditionsFormData
+				});
+				break;
+				
+			default:
+				return new Response(JSON.stringify({ error: 'Invalid update type. Must be: properties, questions, or conditions' }), {
+					status: 400,
+					headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+				});
+		}
+
+		if (!jotformResponse.ok) {
+			const errorText = await jotformResponse.text();
+			return new Response(JSON.stringify({ 
+				error: 'Failed to update form',
+				details: errorText 
+			}), {
+				status: jotformResponse.status,
+				headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+			});
+		}
+
+		const result = await jotformResponse.json() as any;
+		
+		return new Response(JSON.stringify({
+			success: true,
+			message: `Form ${config.updateType} updated successfully`,
 			data: result
 		}), {
 			status: 200,
