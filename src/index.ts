@@ -786,25 +786,141 @@ async function handleCreateFormFromTemplate(config: TemplateFormConfig, env: Env
 			});
 		}
 
-		// Step 3: Build new questions based on config
+		// Step 3: Get existing questions to find the IDs
+		const questionsResponse = await fetch(`https://api.jotform.com/form/${newFormId}/questions?apiKey=${apiKey}`);
+		if (!questionsResponse.ok) {
+			return Response.json({ 
+				error: 'Failed to get form questions',
+				details: await questionsResponse.text() 
+			}, { status: questionsResponse.status });
+		}
+
+		const questionsData = await questionsResponse.json() as any;
+		const existingQuestions = questionsData.content;
+
+		// Find question IDs by name
+		const questionsByName: Record<string, string> = {};
+		for (const [qid, question] of Object.entries(existingQuestions)) {
+			if (question && typeof question === 'object' && 'name' in question) {
+				questionsByName[(question as any).name] = qid;
+			}
+		}
+
+		// Step 4: Update eligibility questions
+		if (config.eligibilityQuestions) {
+			for (let i = 0; i < config.eligibilityQuestions.length; i++) {
+				const eq = config.eligibilityQuestions[i];
+				const questionName = `eligibility_question_${i + 1}`;
+				const questionId = questionsByName[questionName];
+				
+				if (questionId) {
+					// Update existing eligibility question
+					const updateFormData = new FormData();
+					updateFormData.append('question[text]', eq.text);
+					updateFormData.append('question[required]', eq.required ? 'Yes' : 'No');
+					
+					const updateResponse = await fetch(`https://api.jotform.com/form/${newFormId}/question/${questionId}?apiKey=${apiKey}`, {
+						method: 'POST',
+						body: updateFormData
+					});
+					
+					if (!updateResponse.ok) {
+						console.warn(`Failed to update eligibility question ${questionName}:`, await updateResponse.text());
+					}
+				}
+			}
+			
+			// Delete extra eligibility questions if template has more than provided
+			for (let i = config.eligibilityQuestions.length + 1; i <= 5; i++) {
+				const questionName = `eligibility_question_${i}`;
+				const questionId = questionsByName[questionName];
+				
+				if (questionId) {
+					const deleteResponse = await fetch(`https://api.jotform.com/form/${newFormId}/question/${questionId}?apiKey=${apiKey}`, {
+						method: 'DELETE'
+					});
+					
+					if (!deleteResponse.ok) {
+						console.warn(`Failed to delete eligibility question ${questionName}:`, await deleteResponse.text());
+					}
+				}
+			}
+		}
+
+		// Step 5: Update qualification message (text0)
+		if (config.legalTextBlocks && config.legalTextBlocks.length > 0) {
+			const qualificationMessage = config.legalTextBlocks[0];
+			const text0Id = questionsByName['text0'];
+			
+			if (text0Id) {
+				const updateFormData = new FormData();
+				updateFormData.append('question[text]', qualificationMessage.content);
+				
+				const updateResponse = await fetch(`https://api.jotform.com/form/${newFormId}/question/${text0Id}?apiKey=${apiKey}`, {
+					method: 'POST',
+					body: updateFormData
+				});
+				
+				if (!updateResponse.ok) {
+					console.warn('Failed to update qualification message (text0):', await updateResponse.text());
+				}
+			}
+		}
+
+		// Step 6: Delete personal info fields based on config
+		if (config.personalInfoFields) {
+			// Delete name field if not included
+			if (!config.personalInfoFields.includeName && questionsByName['name']) {
+				const deleteResponse = await fetch(`https://api.jotform.com/form/${newFormId}/question/${questionsByName['name']}?apiKey=${apiKey}`, {
+					method: 'DELETE'
+				});
+				if (!deleteResponse.ok) {
+					console.warn('Failed to delete name field:', await deleteResponse.text());
+				}
+			}
+			
+			// Delete address field if not included
+			if (!config.personalInfoFields.includeAddress && questionsByName['address']) {
+				const deleteResponse = await fetch(`https://api.jotform.com/form/${newFormId}/question/${questionsByName['address']}?apiKey=${apiKey}`, {
+					method: 'DELETE'
+				});
+				if (!deleteResponse.ok) {
+					console.warn('Failed to delete address field:', await deleteResponse.text());
+				}
+			}
+			
+			// Delete email field if not included
+			if (!config.personalInfoFields.includeEmail && questionsByName['email']) {
+				const deleteResponse = await fetch(`https://api.jotform.com/form/${newFormId}/question/${questionsByName['email']}?apiKey=${apiKey}`, {
+					method: 'DELETE'
+				});
+				if (!deleteResponse.ok) {
+					console.warn('Failed to delete email field:', await deleteResponse.text());
+				}
+			}
+			
+			// Delete phone field if not included
+			if (!config.personalInfoFields.includePhone && questionsByName['phoneNumber']) {
+				const deleteResponse = await fetch(`https://api.jotform.com/form/${newFormId}/question/${questionsByName['phoneNumber']}?apiKey=${apiKey}`, {
+					method: 'DELETE'
+				});
+				if (!deleteResponse.ok) {
+					console.warn('Failed to delete phone field:', await deleteResponse.text());
+				}
+			}
+		}
+
+		// Step 7: Add new questions (hidden fields, widgets, legal text blocks, signature)
 		const newQuestions: Record<string, any> = {};
 		let questionIndex = 1;
 
-		// Add header
-		newQuestions[questionIndex++] = {
-			type: 'control_head',
-			text: config.title || 'Form Title',
-			order: String(questionIndex - 1),
-			name: 'header'
-		};
-
-		// Add hidden fields first
+		// Add hidden fields
 		if (config.hiddenFields) {
 			for (const field of config.hiddenFields) {
-				newQuestions[questionIndex++] = {
+				newQuestions[String(questionIndex)] = {
 					type: 'control_textbox',
 					text: field.text,
-					order: String(questionIndex - 1),
+					order: String(200 + questionIndex - 1), // High order number to add at end
 					name: field.name,
 					hidden: 'Yes',
 					labelAlign: 'Auto',
@@ -814,203 +930,87 @@ async function handleCreateFormFromTemplate(config: TemplateFormConfig, env: Env
 					readonly: field.readonly ? 'Yes' : 'No',
 					...(field.defaultValue ? { defaultValue: field.defaultValue } : {})
 				};
+				questionIndex++;
 			}
 		}
 
-		// Add widgets (invisible)
+		// Add widgets
 		if (config.widgets) {
 			for (const widget of config.widgets) {
 				if (widget.type === 'userAgent') {
-					newQuestions[questionIndex++] = {
+					newQuestions[String(questionIndex)] = {
 						type: 'control_widget',
 						text: '',
-						order: String(questionIndex - 1),
+						order: String(200 + questionIndex - 1),
 						name: widget.name,
 						cfname: 'Get User Agent',
 						selectedField: '543ea3eb3066feaa30000036',
 						static: 'No',
 						hidden: 'Yes'
 					};
+					questionIndex++;
 				} else if (widget.type === 'geoStamp') {
-					newQuestions[questionIndex++] = {
+					newQuestions[String(questionIndex)] = {
 						type: 'control_widget',
 						text: '',
-						order: String(questionIndex - 1),
+						order: String(200 + questionIndex - 1),
 						name: widget.name,
 						cfname: 'Geo Stamp',
 						selectedField: '5935688a725d1797050002e7',
 						static: 'No',
 						hidden: 'Yes'
 					};
+					questionIndex++;
 				}
 			}
 		}
 
-		// Add eligibility questions
-		if (config.eligibilityQuestions) {
-			for (const eq of config.eligibilityQuestions) {
-				newQuestions[questionIndex++] = {
-					type: 'control_radio',
-					text: eq.text,
-					order: String(questionIndex - 1),
-					name: eq.name,
-					required: eq.required ? 'Yes' : 'No',
-					options: 'Yes|No',
-					labelAlign: 'Auto',
-					validation: 'None'
-				};
-			}
-		}
-
-		// Add first legal text block (qualification message)
-		if (config.legalTextBlocks && config.legalTextBlocks.length > 0) {
-			const firstBlock = config.legalTextBlocks[0];
-			newQuestions[questionIndex++] = {
-				type: 'control_text',
-				text: firstBlock.content,
-				order: String(questionIndex - 1),
-				name: firstBlock.name || 'qualification_message'
-			};
-		}
-
-		// Add personal info fields
-		if (config.personalInfoFields) {
-			if (config.personalInfoFields.includeName) {
-				newQuestions[questionIndex++] = {
-					type: 'control_fullname',
-					text: 'Name *',
-					order: String(questionIndex - 1),
-					name: 'name',
-					required: 'Yes',
-					labelAlign: 'Auto',
-					validation: 'None',
-					sublabels: JSON.stringify({
-						prefix: 'Prefix',
-						first: 'First Name',
-						middle: 'Middle Name',
-						last: 'Last Name',
-						suffix: 'Suffix'
-					}),
-					size: '20',
-					readonly: 'No'
-				};
-			}
-
-			if (config.personalInfoFields.includeAddress) {
-				newQuestions[questionIndex++] = {
-					type: 'control_address',
-					text: 'Address *',
-					order: String(questionIndex - 1),
-					name: 'address',
-					required: 'Yes',
-					labelAlign: 'Auto',
-					validation: 'None',
-					sublabels: JSON.stringify({
-						addr_line1: 'Street Address',
-						addr_line2: 'Street Address Line 2',
-						city: 'City',
-						state: 'State',
-						postal: 'Zip Code',
-						country: 'Country'
-					}),
-					size: '20',
-					readonly: 'No'
-				};
-			}
-
-			if (config.personalInfoFields.includeEmail) {
-				newQuestions[questionIndex++] = {
-					type: 'control_email',
-					text: 'Email *',
-					order: String(questionIndex - 1),
-					name: 'email',
-					required: 'Yes',
-					labelAlign: 'Auto',
-					validation: 'Email',
-					size: '20',
-					readonly: 'No'
-				};
-			}
-
-			if (config.personalInfoFields.includePhone) {
-				newQuestions[questionIndex++] = {
-					type: 'control_phone',
-					text: 'Phone Number *',
-					order: String(questionIndex - 1),
-					name: 'phoneNumber',
-					required: 'Yes',
-					labelAlign: 'Auto',
-					validation: 'None',
-					countryCode: 'No',
-					inputMask: 'enable',
-					inputMaskValue: '(###) ###-####',
-					size: '20',
-					readonly: 'No',
-					sublabels: JSON.stringify({
-						country: 'Country Code',
-						area: 'Area Code',
-						phone: 'Phone Number',
-						full: 'Phone Number',
-						masked: 'Please enter a valid phone number.'
-					})
-				};
-			}
-		}
-
-		// Add page break before signature section
-		newQuestions[questionIndex++] = {
-			type: 'control_pagebreak',
-			text: 'Page Break',
-			order: String(questionIndex - 1),
-			name: 'pageBreak2'
-		};
-
-		// Add remaining legal text blocks
+		// Add remaining legal text blocks (skip first one as it's the qualification message)
 		if (config.legalTextBlocks) {
 			for (let i = 1; i < config.legalTextBlocks.length; i++) {
 				const block = config.legalTextBlocks[i];
-				newQuestions[questionIndex++] = {
+				newQuestions[String(questionIndex)] = {
 					type: 'control_text',
 					text: block.content,
-					order: String(questionIndex - 1),
+					order: String(100 + i), // Place after personal info
 					name: block.name || `legalText${i}`
 				};
+				questionIndex++;
 			}
 		}
 
 		// Add signature fields
 		if (config.signatureFields) {
 			for (const sig of config.signatureFields) {
-				newQuestions[questionIndex++] = {
+				newQuestions[String(questionIndex)] = {
 					type: 'control_signature',
 					text: sig.text,
-					order: String(questionIndex - 1),
+					order: String(150), // Place near end
 					name: sig.name,
 					required: sig.required ? 'Yes' : 'No',
 					size: sig.size || '600',
 					labelAlign: 'Auto',
 					validation: 'None'
 				};
+				questionIndex++;
 			}
 		}
 
-		// Step 4: Replace all questions in the cloned form
-		const questionsData = { questions: newQuestions };
-		
-		const updateQuestionsResponse = await fetch(`https://api.jotform.com/form/${newFormId}/questions?apiKey=${apiKey}`, {
-			method: 'PUT',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify(questionsData)
-		});
+		// Add new questions if any
+		if (Object.keys(newQuestions).length > 0) {
+			const addQuestionsData = { questions: newQuestions };
+			
+			const addQuestionsResponse = await fetch(`https://api.jotform.com/form/${newFormId}/questions?apiKey=${apiKey}`, {
+				method: 'PUT',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(addQuestionsData)
+			});
 
-		if (!updateQuestionsResponse.ok) {
-			const errorText = await updateQuestionsResponse.text();
-			return Response.json({ 
-				error: 'Failed to update questions in cloned form',
-				details: errorText 
-			}, { status: updateQuestionsResponse.status });
+			if (!addQuestionsResponse.ok) {
+				console.warn('Failed to add some questions:', await addQuestionsResponse.text());
+			}
 		}
 
 		// Step 5: Add webhook if specified

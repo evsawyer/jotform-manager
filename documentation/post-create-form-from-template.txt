@@ -1,6 +1,8 @@
 {
   "templateFormId": "252306171401039",
   "title": "TEST9",
+  // Template has 5 eligibility questions (eligibility_question_1 to 5)
+  // We'll update the first 3 and delete 4 & 5
   "eligibilityQuestions": [
     {
       "text": "Are you 18 years of age or older?",
@@ -18,6 +20,7 @@
       "required": true
     }
   ],
+  // First legal text block updates the text0 field in template
   "legalTextBlocks": [
     {
       "content": "<p><span style=\"font-size: 14pt;\"><strong>✅ You May Qualify! Let's Get Started</strong></span></p>\r\n<p>This will cost you nothing out of pocket. We get paid only if we recover an award or settlement on your behalf. If we don't win, you don't pay.</p>\r\n<p><span style=\"font-size: 14pt;\"><strong>To continue, please provide your contact information.</strong></span></p>\r\n<p>Your privacy and the protection of your data are important to us. We will only use your information to pursue this claim on your behalf. For more information, please see our privacy policy.</p>",
@@ -40,11 +43,12 @@
       "name": "signature_notice"
     }
   ],
+  // Personal info fields - set to false to delete from template
   "personalInfoFields": {
     "includeName": true,
     "includeAddress": true,
     "includeEmail": true,
-    "includePhone": true
+    "includePhone": true  // Set to false to delete phone field from template
   },
   "signatureFields": [
     {
