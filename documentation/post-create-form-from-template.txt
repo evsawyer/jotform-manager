@@ -48,7 +48,7 @@
     "includeName": true,
     "includeAddress": true,
     "includeEmail": true,
-    "includePhone": true  // Set to false to delete phone field from template
+    "includePhone": false  // This should delete the phone field from the cloned form
   },
   "signatureFields": [
     {

@@ -818,6 +818,8 @@ async function handleCreateFormFromTemplate(config: TemplateFormConfig, env: Env
 					const updateFormData = new FormData();
 					updateFormData.append('question[text]', eq.text);
 					updateFormData.append('question[required]', eq.required ? 'Yes' : 'No');
+					// Make sure we're not changing the name
+					updateFormData.append('question[name]', questionName);
 					
 					const updateResponse = await fetch(`https://api.jotform.com/form/${newFormId}/question/${questionId}?apiKey=${apiKey}`, {
 						method: 'POST',
@@ -827,6 +829,8 @@ async function handleCreateFormFromTemplate(config: TemplateFormConfig, env: Env
 					if (!updateResponse.ok) {
 						console.warn(`Failed to update eligibility question ${questionName}:`, await updateResponse.text());
 					}
+				} else {
+					console.warn(`Eligibility question ${questionName} not found in template`);
 				}
 			}
 			
@@ -855,6 +859,8 @@ async function handleCreateFormFromTemplate(config: TemplateFormConfig, env: Env
 			if (text0Id) {
 				const updateFormData = new FormData();
 				updateFormData.append('question[text]', qualificationMessage.content);
+				// Keep the same name
+				updateFormData.append('question[name]', 'text0');
 				
 				const updateResponse = await fetch(`https://api.jotform.com/form/${newFormId}/question/${text0Id}?apiKey=${apiKey}`, {
 					method: 'POST',
@@ -864,6 +870,8 @@ async function handleCreateFormFromTemplate(config: TemplateFormConfig, env: Env
 				if (!updateResponse.ok) {
 					console.warn('Failed to update qualification message (text0):', await updateResponse.text());
 				}
+			} else {
+				console.warn('text0 field not found in template');
 			}
 		}
 
@@ -914,53 +922,58 @@ async function handleCreateFormFromTemplate(config: TemplateFormConfig, env: Env
 		const newQuestions: Record<string, any> = {};
 		let questionIndex = 1;
 
-		// Add hidden fields
+		// Add hidden fields (only if they don't already exist)
 		if (config.hiddenFields) {
 			for (const field of config.hiddenFields) {
-				newQuestions[String(questionIndex)] = {
-					type: 'control_textbox',
-					text: field.text,
-					order: String(200 + questionIndex - 1), // High order number to add at end
-					name: field.name,
-					hidden: 'Yes',
-					labelAlign: 'Auto',
-					validation: 'None',
-					size: '20',
-					required: 'No',
-					readonly: field.readonly ? 'Yes' : 'No',
-					...(field.defaultValue ? { defaultValue: field.defaultValue } : {})
-				};
-				questionIndex++;
+				// Check if this hidden field already exists
+				if (!questionsByName[field.name]) {
+					newQuestions[String(questionIndex)] = {
+						type: 'control_textbox',
+						text: field.text,
+						order: String(200 + questionIndex - 1), // High order number to add at end
+						name: field.name,
+						hidden: 'Yes',
+						labelAlign: 'Auto',
+						validation: 'None',
+						size: '20',
+						required: 'No',
+						readonly: field.readonly ? 'Yes' : 'No',
+						...(field.defaultValue ? { defaultValue: field.defaultValue } : {})
+					};
+					questionIndex++;
+				}
 			}
 		}
 
-		// Add widgets
+		// Add widgets (only if they don't already exist)
 		if (config.widgets) {
 			for (const widget of config.widgets) {
-				if (widget.type === 'userAgent') {
-					newQuestions[String(questionIndex)] = {
-						type: 'control_widget',
-						text: '',
-						order: String(200 + questionIndex - 1),
-						name: widget.name,
-						cfname: 'Get User Agent',
-						selectedField: '543ea3eb3066feaa30000036',
-						static: 'No',
-						hidden: 'Yes'
-					};
-					questionIndex++;
-				} else if (widget.type === 'geoStamp') {
-					newQuestions[String(questionIndex)] = {
-						type: 'control_widget',
-						text: '',
-						order: String(200 + questionIndex - 1),
-						name: widget.name,
-						cfname: 'Geo Stamp',
-						selectedField: '5935688a725d1797050002e7',
-						static: 'No',
-						hidden: 'Yes'
-					};
-					questionIndex++;
+				if (!questionsByName[widget.name]) {
+					if (widget.type === 'userAgent') {
+						newQuestions[String(questionIndex)] = {
+							type: 'control_widget',
+							text: '',
+							order: String(200 + questionIndex - 1),
+							name: widget.name,
+							cfname: 'Get User Agent',
+							selectedField: '543ea3eb3066feaa30000036',
+							static: 'No',
+							hidden: 'Yes'
+						};
+						questionIndex++;
+					} else if (widget.type === 'geoStamp') {
+						newQuestions[String(questionIndex)] = {
+							type: 'control_widget',
+							text: '',
+							order: String(200 + questionIndex - 1),
+							name: widget.name,
+							cfname: 'Geo Stamp',
+							selectedField: '5935688a725d1797050002e7',
+							static: 'No',
+							hidden: 'Yes'
+						};
+						questionIndex++;
+					}
 				}
 			}
 		}
@@ -969,30 +982,35 @@ async function handleCreateFormFromTemplate(config: TemplateFormConfig, env: Env
 		if (config.legalTextBlocks) {
 			for (let i = 1; i < config.legalTextBlocks.length; i++) {
 				const block = config.legalTextBlocks[i];
-				newQuestions[String(questionIndex)] = {
-					type: 'control_text',
-					text: block.content,
-					order: String(100 + i), // Place after personal info
-					name: block.name || `legalText${i}`
-				};
-				questionIndex++;
+				// Only add if it doesn't already exist
+				if (!questionsByName[block.name || `legalText${i}`]) {
+					newQuestions[String(questionIndex)] = {
+						type: 'control_text',
+						text: block.content,
+						order: String(100 + i), // Place after personal info
+						name: block.name || `legalText${i}`
+					};
+					questionIndex++;
+				}
 			}
 		}
 
-		// Add signature fields
+		// Add signature fields (only if they don't already exist)
 		if (config.signatureFields) {
 			for (const sig of config.signatureFields) {
-				newQuestions[String(questionIndex)] = {
-					type: 'control_signature',
-					text: sig.text,
-					order: String(150), // Place near end
-					name: sig.name,
-					required: sig.required ? 'Yes' : 'No',
-					size: sig.size || '600',
-					labelAlign: 'Auto',
-					validation: 'None'
-				};
-				questionIndex++;
+				if (!questionsByName[sig.name]) {
+					newQuestions[String(questionIndex)] = {
+						type: 'control_signature',
+						text: sig.text,
+						order: String(150), // Place near end
+						name: sig.name,
+						required: sig.required ? 'Yes' : 'No',
+						size: sig.size || '600',
+						labelAlign: 'Auto',
+						validation: 'None'
+					};
+					questionIndex++;
+				}
 			}
 		}
 
