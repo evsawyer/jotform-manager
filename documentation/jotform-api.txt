@@ -1,0 +1,1616 @@
+Title: Embed a Form Builder into Your Website Builder
+
+URL Source: http://api.jotform.com/docs/
+
+Markdown Content:
+Developers
+Sign Up for Free
+API Documentation
+API Documentation
+cURL
+PHP
+Javascript
+Java
+Python
+NodeJS
+GO
+C#
+Ruby
+Scala
+Overview
+Getting Started
+Authentication
+Libraries
+Use Cases
+FAQ
+/user
+/form
+/submission
+/report
+/folder
+/system
+Overview
+
+The Jotform API makes it possible to connect to your form data without using the Jotform web site.
+
+The Jotform API is written for Jotform users and 3rd party developers who would like to serve Jotform users. For example, Zapier uses the Jotform API to connect form submission data with other services.
+
+Care to tell us how you would like to use Jotform API? Feel free to fill this form. We'd be happy to help you—we’ll even assign a developer to help you with your task!
+
+API Endpoints
+
+You can access our API through the following URLs:
+
+Standard API Usage: Use the default API URL: https://api.jotform.com
+For EU: Use the EU API URL: https://eu-api.jotform.com
+For HIPAA: Use the HIPAA API URL: https://hipaa-api.jotform.com
+
+Upgrade to Enterprise to make your API url your-domain.com/API or subdomain.jotform.com/API instead of api.jotform.com Learn more about Jotform Enterprise
+
+Getting Started
+
+To get started using Jotform API you need a valid API key. Obtaining an API key is very simple.
+
+1. Go to My Account
+2. Navigate to API Section
+3. Create a new API Key
+
+Get started with the Jotform API by using an API library in the language of your choice. See libraries section for a complete list.
+
+Authentication
+The Jotform API supports more than one authentication method to simplify the authentication process in different programming languages.
+
+1. Authenticate with Query Parameters
+You can send your API Key with your query as a parameter
+
+GET An example call to get user details
+
+
+curl -X GET "https://api.jotform.com/user?apiKey={myApiKey}"
+
+POST An example call to setup a new webhook
+
+
+curl -X POST -d "webhookURL=http://my.webhook.url/connect-to-DB.ext" -d "apiKey={myApiKey}" "https://api.jotform.com/v1/form/{myFormID}/webhooks"
+
+2. Authenticate with HTTP Headers
+You can send your API Key with your query as a HTTP header
+
+An example call to get user details by HTTP header
+
+
+curl -H "APIKEY: {myApiKey}" "https://api.jotform.com/user"
+
+3. Authenticate with Javascript SDK
+You can authenticate users through Jotform by using our Javascript SDK.
+
+1. First, you should call JF.login() to launch a login form within an iFrame pop-up to prompt a user to sign-in. If the user authenticates successfully, (s)he will be asked to allow permissions to access to her account. You can pass callback functions to JF.login for both successful and failed authorizations. 
+
+<script src="https://js.jotform.com/JotForm.js"></script>
+<script>
+//JF.login(success, error) method takes two optional arguments
+//Both arguments should be function 
+//First argument will be called after successful login
+//Second argument will be called if authorization fails
+JF.login(
+function success(){
+JF.getForms(function(response){
+for(var i=0; i<response.length; i++){
+document.write( "<li> " + response[i].title);
+}
+});
+},
+function error(){
+window.alert("Could not authorize user");
+}
+); 
+</script> 
+
+2. At this point, we can use the API to perform actions. But, what if we want to be able to store this authentication so that we can use it in the future? To be able to do that, you need to get the user's API key and save it in your servers. In order to obtain API key from SDK, call JF.getAPIKey method.
+
+var apiKey = JF.getAPIKey();
+console.log(apiKey); //should log currently used API key
+
+
+
+Once you have the API key, you can call JF.initialize({apiKey: "123456789"}) and then call any other API methods. Note that JF.login method will automatically call initialize method after successful login.
+
+JF.initialize( {apiKey: "123456789"} ); 
+
+Login with Jotform
+Libraries
+Github Repositories
+
+Android : https://github.com/jotform/jotform-api-android - ZIP or Tarball
+C# : https://github.com/jotform/jotform-api-csharp - ZIP or Tarball
+GO : https://github.com/jotform/jotform-api-go - ZIP or Tarball
+iOS : https://github.com/jotform/jotform-api-ios - ZIP or Tarball
+Java : https://github.com/jotform/jotform-api-java - ZIP or Tarball
+NodeJS : https://github.com/jotform/jotform-api-nodejs - ZIP or Tarball
+PHP : https://github.com/jotform/jotform-api-php - ZIP or Tarball
+Python : https://github.com/jotform/jotform-api-python - ZIP or Tarball
+Ruby : https://github.com/jotform/jotform-api-ruby - ZIP or Tarball
+Scala : https://github.com/jotform/jotform-api-scala - ZIP or Tarball
+
+
+Installation Notes
+
+PHP Client Library
+
+
+Simply download Jotform.php into your application path and include in your php file as:
+
+include "../Jotform.php";
+
+
+More info available on repository page at Github.
+
+
+Python Client Library
+
+
+There is currently no package submitted to PyPi. You need to download and import jotform.py as follows.
+
+from jotform import JotformAPIClient
+
+
+More info available on repository page at Github.
+
+
+Java Client Library
+
+
+Java client library is not available as a '.jar' file so you have to copy the folder structure of Jotform Java package into your project. Jotform API Java client uses Apache HTTP Client 4.2.5 and org.json packages. So in order to work with the api client you need to add them to your project.
+
+First check out the git repository and add the following files into your src folder as:
+
+/src/com/jotform/api/JotformAPIWrapper.java
+/src/com/jotform/api/JotformException.java
+/src/com/jotform/api/samples/GetTodaysSubmissions.java
+/src/com/jotform/api/samples/PrintFormList.java
+/src/org/json/JSONArray.java
+/src/org/json/JSONException.java
+/src/org/json/JSONObject.java
+/src/org/json/JSONString.java
+/src/org/json/JSONStringer.java
+/src/org/json/JSONTokener.java
+/src/org/json/JSONWriter.java
+
+
+Then copy the contents of the /lib/ folder into your project with the same path.
+
+/lib/commons-logging-1.1.1.jar
+/lib/httpclient-4.2.5.jar
+/lib/httpcore-4.2.4.jar
+
+
+Then you will need to add these .jars into your buildpath. If you are using eclipse, you can simply right click on each jar file and click Build Path->Add To Build Path. If the jars are not visible in your project explorer even though you copied them into your lib/ folder, try right clicking on your project in Package Explorer and then clicking refresh.
+
+More information available on repository page at Github.
+
+Javascript Client Library Copy and paste the script below to your page
+<script src="https://js.jotform.com/JotForm.js"></script>
+
+NodeJS Client Library
+npm install jotform
+
+
+More information available on repository page at Github.
+
+Use cases
+You can find some use cases in API Use Cases Repository
+
+
+Calculate Survey Result Percentages : Example written with API PHP library to calculate the percentages of star rates/radio buttons in the form submissions.
+Download your submissions' uploaded files to your computer, implemented with Ruby.
+Combine Submissions from different forms into one .csv file. Implemented with JavaScript and PHP.
+Contribution Map : See where submissions come from. Implemented with JavaScript only.
+Jotform Views : List and display Submissions blended with your imagination. Made so easy. Implemented with JavaScript and PHP.
+Populate Fields : A script that creates urls to prepopulate your forms with your desired values. Implemented with JavaScript.
+Answer Comparator : This script compares the current form entries to those that have already been submitted by previous users. Implemented with JavaScript and PHP.
+Import Submissions : This script imports data from .CSV and Microsoft Excel files and submits them to Jotform via the PHP API. Implemented with JavaScript and PHP.
+
+Do you have an use case to share with us? Fork our repository, commit your code and open a pull request!
+
+Do you want us to implement examples for you? Contact Us and let us know your request!
+
+
+FAQ
+What is Jotform API?
+Jotform API allows you to access your Jotform account, forms and form submissions. Writing applications, integrations and scripts with Jotform API is very easy since it is based on REST principles. Code samples are also available on most common languages such as PHP, Java, Python, NodeJS and GO.
+What are the most common uses for Jotform API?
+Integration with a 3rd party app to process existing form submission data, or to receive submission notifications with webhooks.
+Mobile frontend apps for Jotform.
+To Process form submission data to with your own scripts.
+What is covered in Version 1?
+Jotform API v1 is mostly read only. You can get information about the Jotform user and forms. You can also download existing form data.
+Are there any restrictions?
+API Keys are limited to:
+1000 requests per day for the starter plan
+10000 requests per day for the bronze plan
+50000 requests per day for the silver plan
+100000 requests per day for the gold plan
+Jotform Enterprise has no limits to the number of daily API calls.
+
+You can get more information about the limits from our article Daily API Call Limits.
+If you need your limits to be increased please contact us.
+Where can I get an API Key?
+You can get your Jotform API Key from API section at My Account.
+Does Jotform API supports JSONP?
+Yes, Jotform API supports JSONP requests. You can simply add "callback" variable with your callback function's name to your API requests.
+
+Example usage: https://api.jotform.com/user?apiKey={APIKey}&callback=myCallBackFunction
+
+If you have any further question, please contact API Team.
+
+
+
+GET /user
+Get User Information
+
+Get user account details for this Jotform user. Including user account type, avatar URL, name, email, website URL.
+
+
+curl -X GET "https://api.jotform.com/user?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+ 	 	
+Try it out
+
+
+
+
+GET /user/usage
+Get Monthly User Usage
+
+Get number of form submissions received this month. Also, get number of SSL form submissions, payment form submissions and upload space used by user.
+
+
+curl -X GET "https://api.jotform.com/user/usage?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+ 	 	
+Try it out
+
+
+
+
+GET /user/submissions
+Get User Submissions
+
+Get a list of all submissions for all forms on this account. The answers array has the submission data. Created_at is the date of the submission.
+
+
+curl -X GET "https://api.jotform.com/user/submissions?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+Show Optional Fields
+ 	 	
+Try it out
+
+
+
+
+GET /user/subusers
+Get Sub-User Account List
+
+Get a list of sub users for this accounts and list of forms and form folders with access privileges.
+
+
+curl -X GET "https://api.jotform.com/user/subusers?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+ 	 	
+Try it out
+
+
+
+
+GET /user/folders
+Get User Folders
+
+Get a list of form folders for this account. Returns name of the folder and owner of the folder for shared folders.
+
+
+curl -H "APIKEY: {apiKey}" "https://api.jotform.com/user/folders"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+ 	 	
+Try it out
+
+
+
+
+GET /user/reports
+Get User Reports
+
+List of URLS for reports in this account. Includes reports for all of the forms. ie. Excel, CSV, printable charts, embeddable HTML tables.
+
+
+curl -X GET "https://api.jotform.com/user/reports?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+ 	 	
+Try it out
+
+
+
+
+POST /user/login
+Login user with given credentials
+
+
+curl -X POST -d "username=Username" -d "password=Password" -d "appName=Application Name" -d "access=Access Type" "https://api.jotform.com/user/login"
+
+Sample Response
+Parameter	Description	Test Console
+username
+String	User's username	
+username
+
+password
+String	User's password	
+password
+
+Show Optional Fields
+ 	 	
+Try it out
+
+
+
+
+GET /user/logout
+Logout user
+
+
+curl -X GET "https://api.jotform.com/v1/user/logout"
+
+Sample Response
+Parameter	Description	Test Console
+No parameter needed
+		
+ 	 	
+Try it out
+
+
+
+
+GET /user/settings
+Get User Settings
+
+Get user's time zone and language.
+
+
+curl -X GET "https://api.jotform.com/user/settings?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+ 	 	
+Try it out
+
+
+
+
+POST /user/settings
+Update User Settings
+
+Update user's settings like time zone and language.
+
+
+curl -X POST -d "email=new@email.com" -d "website=www.newwebsite.com" "https://api.jotform.com/user/settings?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+Show Optional Fields
+ 	 	
+Try it out
+
+
+
+
+GET /user/history
+Get History
+
+User activity log about things like forms created/modified/deleted, account logins and other operations.
+
+
+curl -X GET "https://api.jotform.com/user/history?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+Show Optional Fields
+ 	 	
+Try it out
+
+
+
+
+GET /user/forms
+Get User Forms
+
+Get a list of forms for this account. Includes basic details such as title of the form, when it was created, number of new and total submissions.
+
+
+curl -H "APIKEY: {apiKey}" "https://api.jotform.com/user/forms"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+Show Optional Fields
+ 	 	
+Try it out
+
+
+
+
+POST /user/forms
+Create a new form
+
+Create new forms with questions, properties and email settings.
+
+
+curl -X POST -d "questions[0][type]=control_head" -d "questions[0][text]=Form Title" -d "questions[0][order]=1" -d "questions[0][name]=Header" -d "questions[1][type]=control_textbox" -d "questions[1][text]=Text Box Title" -d "questions[1][order]=2" -d "questions[1][name]=TextBox" -d "questions[1][validation]=None" -d "questions[1][required]=No" -d "questions[1][readonly]=No" -d "questions[1][size]=20" -d "questions[1][labelAlign]=Auto" -d "questions[1][hint]= " -d "properties[title]=New Form" -d "properties[height]=600" -d "emails[0][type]=notification" -d "emails[0][name]=notification" -d "emails[0][from]=default" -d "emails[0][to]=noreply@jotform.com" -d "emails[0][subject]=New Submission" -d "emails[0][html]=false" "https://api.jotform.com/user/forms?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+questions[1][type]
+String	Question field type	
+questions[1][type]
+
+questions[1][text]
+String	Label of your question	
+questions[1][text]
+
+questions[1][order]
+String	Order defines the location of the question in the form.	
+questions[1][order]
+
+questions[1][name]
+String	Slug of question label	
+questions[1][name]
+
+properties[title]
+String	Form Title	
+properties[title]
+
+Show Optional Fields
+ 	 	
+Try it out
+
+
+
+
+POST /form
+Create a new form
+
+Create new forms with questions, properties and email settings.
+
+
+curl -X POST -d "questions[0][type]=control_head" -d "questions[0][text]=Form Title" -d "questions[0][order]=1" -d "questions[0][name]=Header" -d "questions[1][type]=control_textbox" -d "questions[1][text]=Text Box Title" -d "questions[1][order]=2" -d "questions[1][name]=TextBox" -d "questions[1][validation]=None" -d "questions[1][required]=No" -d "questions[1][readonly]=No" -d "questions[1][size]=20" -d "questions[1][labelAlign]=Auto" -d "questions[1][hint]= " -d "properties[title]=New Form" -d "properties[height]=600" -d "emails[0][type]=notification" -d "emails[0][name]=notification" -d "emails[0][from]=default" -d "emails[0][to]=noreply@jotform.com" -d "emails[0][subject]=New Submission" -d "emails[0][html]=false" "https://api.jotform.com/form?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+questions[1][type]
+String	Question field type	
+questions[1][type]
+
+questions[1][text]
+String	Label of your question	
+questions[1][text]
+
+questions[1][order]
+String	Order defines the location of the question in the form.	
+questions[1][order]
+
+questions[1][name]
+String	Slug of question label	
+questions[1][name]
+
+properties[title]
+String	Form Title	
+properties[title]
+
+Show Optional Fields
+ 	 	
+Try it out
+
+
+
+
+PUT /user/forms
+Create new forms
+
+Create new forms with questions, properties and email settings.
+
+
+curl -X PUT -d '{"questions":[{"type":"control_head","text":"Form Title","order":"1","name":"Header"},{"type":"control_textbox","text":"Text Box Title","order":"2","name":"TextBox","validation":"None","required":"No","readonly":"No","size":"20","labelAlign":"Auto","hint":""}],"properties":{"title":"New Form","height":"600"},"emails":[{"type":"notification","name":"notification", "from":"default","to":"noreply@jotform.com","subject":"New Submission","html":"false"}]}' "https://api.jotform.com/user/forms?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+formContent
+JSON	Questions, properties and emails of new form.	
+formContent
+
+ 	 	
+Try it out
+
+
+
+
+PUT /form
+Create new forms
+
+Create new forms with questions, properties and email settings.
+
+
+curl -X PUT -d '{"questions":[{"type":"control_head","text":"Form Title","order":"1","name":"Header"},{"type":"control_textbox","text":"Text Box Title","order":"2","name":"TextBox","validation":"None","required":"No","readonly":"No","size":"20","labelAlign":"Auto","hint":""}],"properties":{"title":"New Form","height":"600"},"emails":[{"type":"notification","name":"notification", "from":"default","to":"noreply@jotform.com","subject":"New Submission","html":"false"}]}' "https://api.jotform.com/form?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+formContent
+JSON	Questions, properties and emails of new form.	
+formContent
+
+ 	 	
+Try it out
+
+
+
+
+GET /form/{id}
+Get Form Details
+
+Get basic information about a form. Use /form/{id}/questions to get the list of questions.
+
+
+curl -X GET "https://api.jotform.com/form/{formID}?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+id
+String	Form ID is the numbers you see on a form URL: https://www.jotformpro.com/form/30693660548966.
+Example: 30693660548966	
+id
+
+ 	 	
+Try it out
+
+
+
+
+DELETE /form/{id}
+Delete a form
+
+Delete an existing form.
+
+
+curl -X DELETE "https://api.jotform.com/form/{formID}?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+id
+String	Form ID: You can get form IDs when you call /user/forms. Question ID: You can get question IDs when you call /form/{id}/questions.	
+id
+
+ 	 	
+Try it out
+
+
+
+
+POST /form/{id}/clone
+Clone Form
+
+Clone a single form.
+
+
+curl -X POST "https://api.jotform.com/form/{formID}/clone?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+id
+String	Form ID. You can get form IDs when you call /user/forms.
+Example: 31974353596870	
+id
+
+ 	 	
+Try it out
+
+
+
+
+GET /form/{id}/questions
+Get Form Questions
+
+Get a list of all questions on a form. Type describes question field type. Order is the question order in the form. Text field is the question label.
+
+
+curl -X GET "https://api.jotform.com/form/{formID}/questions?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+id
+String	Form ID is the numbers you see on a form URL: https://www.jotformpro.com/form/30693660548966.	
+id
+
+ 	 	
+Try it out
+
+
+
+
+POST /form/{id}/questions
+Add new question to specified form
+
+Add new question to specified form. Form questions might have various properties. Examples: Is it required? Are there any validations such as 'numeric only'?
+
+
+curl -X POST -d "question[type]=control_head" -d "question[text]=Header" -d "question[order]=1" -d "question[name]=clickTo" "https://api.jotform.com/form/{formID}/questions?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+id
+String	Form ID: You can get form IDs when you call /user/forms. Question ID: You can get question IDs when you call /form/{id}/questions.	
+id
+
+question[type]
+String	Type describes question field type.
+Most commonly used types are control_textbox, control_textarea, control_dropdown control_radio, control_checkbox, control_fileupload, control_fullname, control_email and control_datetime	
+question[type]
+
+Show Optional Fields
+ 	 	
+Try it out
+
+
+
+
+PUT /form/{id}/questions
+Add new questions to specified form
+
+Add new questions to specified form. Form questions might have various properties. Examples: Is it required? Are there any validations such as 'numeric only'?
+
+
+curl -X PUT -d '{"questions":{"1":{"type":"control_head","text":"Text 1","order":"1","name":"Header1"},"2":{"type":"control_head","text":"Text 2","order":"2","name":"Header2"}}}' "https://api.jotform.com/form/{formID}/questions?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+id
+String	Form ID: You can get form IDs when you call /user/forms. Question ID: You can get question IDs when you call /form/{id}/questions.	
+id
+
+questions
+JSON	New question's properties	
+questions
+
+ 	 	
+Try it out
+
+
+
+
+GET /form/{id}/question/{qid}
+Get Details About a Question
+
+Form questions might have various properties. Examples: Is it required? Are there any validations such as 'numeric only'?
+
+
+curl -X GET "https://api.jotform.com/form/{formID}/question/{questionID}?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+id
+String	Form ID is the numbers you see on a form URL: https://www.jotformpro.com/form/30693660548966.	
+id
+
+qid
+String	Identifier for each question on a form. You can get a list of question IDs from /form/{id}/questions end point.	
+qid
+
+ 	 	
+Try it out
+
+
+
+
+POST /form/{id}/question/{qid}
+Add or edit a single question properties
+
+Edit a question property or add a new one. Form questions might have various properties. Examples: Is it required? Are there any validations such as 'numeric only'?
+
+
+curl -X POST -d "question[text]=New Text" -d "question[order]=3" -d "question[name]=New Name of Question" "https://api.jotform.com/form/{formID}/question/{questionID}?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+id
+String	Form ID: You can get form IDs when you call /user/forms. Question ID: You can get question IDs when you call /form/{id}/questions.	
+id
+
+qid
+String	Identifier for each question on a form. You can get a list of question IDs from /form/{id}/questions end point.	
+qid
+
+Show Optional Fields
+ 	 	
+Try it out
+
+
+
+
+DELETE /form/{id}/question/{qid}
+Delete Form Question
+
+Delete a single form question.
+
+
+curl -X DELETE "https://api.jotform.com/form/{formID}/question/{questionID}?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+id
+String	Form ID: You can get form IDs when you call /user/forms.
+Example: 31974353596870	
+id
+
+qid
+String	Question ID: You can get question IDs when you call /form/{id}/questions.
+Example: 2	
+qid
+
+ 	 	
+Try it out
+
+
+
+
+GET /form/{id}/properties
+Get Form Properties
+
+Get a list of all properties on a form.
+
+
+curl -X GET "https://api.jotform.com/form/{formID}/properties?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+id
+String	Form ID is the numbers you see on a form URL: https://www.jotformpro.com/form/30693660548966.	
+id
+
+ 	 	
+Try it out
+
+
+
+
+POST /form/{id}/properties
+Add or edit properties of a specific form
+
+Edit a form property or add a new one.
+
+
+curl -X POST -d "properties[thankurl]=http://www.newthankyoupage.com" -d "properties[activeRedirect]=thankurl" -d "properties[formWidth]=650" -d "properties[labelWidth]=150" -d "https://api.jotform.com/form/{formID}/properties?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+id
+String	Form ID: You can get form IDs when you call /user/forms. Question ID: You can get question IDs when you call /form/{id}/questions.	
+id
+
+Show Optional Fields
+ 	 	
+Try it out
+
+
+
+
+PUT /form/{id}/properties
+Add or edit properties of a specific form
+
+Edit a form property or add a new one.
+
+
+curl -X PUT -d '{"properties":{"activeRedirect":"default","formWidth":"650","labelWidth":"150"}}' "https://api.jotform.com/form/{formID}/properties?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+id
+String	Form ID: You can get form IDs when you call /user/forms. Question ID: You can get question IDs when you call /form/{id}/questions.	
+id
+
+formProperties
+JSON	New properties like label width and style.	
+formProperties
+
+ 	 	
+Try it out
+
+
+
+
+GET /form/{id}/properties/{key}
+Get a Form Property
+
+Get a specific property of the form.
+
+
+curl -X GET "https://api.jotform.com/form/{formID}/properties/{propertyKey}?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+id
+String	Form ID is the numbers you see on a form URL: https://www.jotformpro.com/form/30693660548966.	
+id
+
+key
+String	Property key
+You can find property descriptions at property list of the form.	
+key
+fontsize
+options
+hideMailEmptyFields
+limitSubmission
+messageOfLimitedForm
+sendpostdata
+activeRedirect
+alignment
+expireDate
+font
+fontcolor
+formWidth
+highlightLine
+labelWidth
+lineSpacing
+pagetitle
+styles
+thanktext
+unique
+uniqueField
+background
+secure
+expiredDate
+injectCSS
+disabled
+thankurl
+
+ 	 	
+Try it out
+
+
+
+
+GET /form/{id}/reports
+Get form reports
+
+Get all the reports of a specific form.
+
+
+curl -X GET "https://api.jotform.com/form/{formID}/reports?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+id
+String	Form ID is the numbers you see on a form URL: https://www.jotformpro.com/form/30693660548966.	
+id
+
+ 	 	
+Try it out
+
+
+
+
+POST /form/{id}/reports
+Create report
+
+Create new report of a form with intended fields, type and title.
+
+
+curl -X POST -d "title=Report Title" -d "list_type=grid" -d "fields=ip,dt,1" "https://api.jotform.com/form/{formID}/reports?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+id
+String	Form ID is the numbers you see on a form URL: https://www.jotformpro.com/form/30693660548966.	
+id
+
+title
+String	Report title	
+title
+
+list_type
+String	Report type	
+list_type
+csv
+excel
+grid
+table
+rss
+
+Show Optional Fields
+ 	 	
+Try it out
+
+
+
+
+GET /form/{id}/files
+Get Form Uploads
+
+List of files uploaded on a form. Here is how you can access a particular file: https://www.jotform.com/uploads/{username}/{form-id}/{submission-id}/{file-name}. Size and file type is also included.
+
+
+curl -X GET "https://api.jotform.com/form/{formID}/files?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+id
+String	Form ID is the numbers you see on a form URL: https://www.jotformpro.com/form/30693660548966.	
+id
+
+ 	 	
+Try it out
+
+
+
+
+GET /form/{id}/webhooks
+List of Webhooks for a Form
+
+Webhooks can be used to send form submission data as an instant notification. Returns list of webhooks for this form.
+
+
+curl -X GET "https://api.jotform.com/form/{formID}/webhooks?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+id
+String	Form ID is the numbers you see on a form URL: https://www.jotformpro.com/form/30693660548966.	
+id
+
+ 	 	
+Try it out
+
+
+
+
+POST /form/{id}/webhooks
+Add a New Webhook
+
+Webhooks can be used to send form submission data as an instant notification.
+
+
+curl -X POST -d "webhookURL=http://my.domain.tld/connect-to-DB.ext" "https://api.jotform.com/form/{formID}/webhooks?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+id
+String	Form ID is the numbers you see on a form URL: https://www.jotformpro.com/form/30693660548966.	
+id
+
+webhookURL
+String	Webhook URL is where form data will be posted when form is submitted.
+Example: http://my.web.tld/handle.php	
+webhookURL
+
+ 	 	
+Try it out
+
+
+
+
+DELETE /form/{id}/webhooks/{whid}
+Delete a webhook of a specific form
+
+Delete a webhook of a specific form
+
+
+curl -X DELETE "https://api.jotform.com/form/{formID}/webhooks/{webhookID}?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+id
+String	Form ID is the numbers you see on a form URL: https://www.jotformpro.com/form/30693660548966.	
+id
+
+webhookID
+String	Webhook URL is where form data will be posted when form is submitted. You can get webhook IDs when you call /form/{formID}/webhooks.
+Example: 0	
+webhookID
+
+ 	 	
+Try it out
+
+
+
+
+GET /form/{id}/submissions
+Get Form Submissions
+
+List of form responses. answers array has the submitted data. Created_at is the date of the submission.
+
+
+curl -X GET "https://api.jotform.com/form/{formID}/submissions?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+id
+String	Form ID is the numbers you see on a form URL: https://www.jotformpro.com/form/30693660548966.	
+id
+
+Show Optional Fields
+ 	 	
+Try it out
+
+
+
+
+POST /form/{id}/submissions
+Add a Submission to the Form
+
+Submit data to this form using the API. You should get a list of question IDs from form/{id}/questions and send the submission data with qid.
+
+
+curl -X POST -d "submission[1]=answer of Question 1" -d "submission[2_first]=First Name" -d "submission[2_last]=Last Name" "https://api.jotform.com/form/{formID}/submissions?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+id
+String	Form ID is the numbers you see on a form URL: https://www.jotformpro.com/form/30693660548966.	
+id
+
+submission[1]
+String	Data entered in question 1. You should first get a list of question IDs from form/{id}/questions. Or, look at the source code of the form.
+Example: john@example.com	
+submission[1]
+
+Show Optional Fields
+ 	 	
+Try it out
+
+
+
+
+PUT /form/{id}/submissions
+Add Submissions to the Form
+
+Submit data to this form using the API. You should get a list of question IDs from form/{id}/questions and send the submission data with qid.
+
+
+curl -X PUT -d '[{"1":{"text":"answer of Question 1"},"2":{"text":"answer of Question 2"}},{"1":{"text":"answer of Question 1"},"2":{"text":"answer of Question 2"}}]' "https://api.jotform.com/form/{formID}/submissions?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+id
+String	Form ID is the numbers you see on a form URL: https://www.jotformpro.com/form/30693660548966.	
+id
+
+submission
+JSON	Submission data with question IDs.	
+submission
+
+ 	 	
+Try it out
+
+
+
+
+GET /submission/{id}
+Get Submission Data
+
+Similar to /form/{form-id}/submissions. But only get a single submission.
+
+
+curl -X GET "https://api.jotform.com/submission/{submissionID}?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+id
+String	Submission ID. You can get submission IDs when you call /form/{id}/submissions. View submissions directly on a browser: https://www.jotform.com/submission/235194815571509962.
+Example: 235194815571509962	
+id
+
+ 	 	
+Try it out
+
+
+
+
+POST /submission/{id}
+Edit Submission Data
+
+Edit a single submission.
+
+
+curl -X POST -d "submission[1_first]=Johny" -d "submission[new]=1" -d "submission[flag]=0" "https://api.jotform.com/submission/{submissionID}?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+id
+String	Submission ID. You can get submission IDs when you call /form/{id}/submissions. View submissions directly on a browser: https://www.jotform.com/submission/235194815571509962.
+Example: 235194815571509962	
+id
+
+Show Optional Fields
+ 	 	
+Try it out
+
+
+
+
+DELETE /submission/{id}
+Delete Submission Data
+
+Delete a single submission.
+
+
+curl -X DELETE "https://api.jotform.com/submission/{submissionID}?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+id
+String	Submission ID. You can get submission IDs when you call /form/{id}/submissions. View submissions directly on a browser: https://www.jotform.com/submission/235194815571509962.
+Example: 235194815571509962	
+id
+
+ 	 	
+Try it out
+
+
+
+
+GET /report/{id}
+Get Report Details
+
+Get more information about a data report.
+
+
+curl -X GET "https://api.jotform.com/report/{reportID}?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+id
+String	Report ID. You can get a list of reports from /user/reports. For example, you can see the report ID in this report URL: https://www.jotform.com/rss/31753290421044
+Example: 31753290421044	
+id
+
+ 	 	
+Try it out
+
+
+
+
+DELETE /report/{id}
+Delete a Report
+
+Delete an existing report.
+
+
+curl -X DELETE "https://api.jotform.com/report/{reportID}?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+id
+String	Report ID. You can get a list of reports from /user/reports. For example, you can see the report ID in this report URL: https://www.jotform.com/rss/31753290421044	
+id
+
+ 	 	
+Try it out
+
+
+
+
+GET /folder/{id}
+Get Folder Details
+
+Get a list of forms in a folder, and other details about the form such as folder color.
+
+
+curl -X GET "https://api.jotform.com/folder/{folderID}?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+id
+String	Folder ID. Get a list of folders from /user/folders	
+id
+
+ 	 	
+Try it out
+
+
+
+
+POST /folder
+Create Folder
+
+Create a folder with specified parameters
+
+
+curl -X POST -d "name={folderName}" -d "color={hexColorCode}" -d "parent={parentFolderID}" "https://api.jotform.com/folder?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+name
+String	Name of the folder	
+name
+
+Show Optional Fields
+ 	 	
+Try it out
+
+
+
+
+PUT /folder/{id}
+Update Folder
+
+Update a folder with specified parameters. Also you can add forms to the folder.
+
+
+curl -X PUT -d '{"name": "someFolderName", "color": "#FFFFFF", "forms": ["someFormID", "anotherFormID"]}' "https://api.jotform.com/folder/{folderID}?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+id
+String	ID of the folder	
+id
+
+folderContent
+JSON	Name, color, parent of the specified folder. Also you can move forms to the specified folder.	
+folderContent
+
+ 	 	
+Try it out
+
+
+
+
+DELETE /folder/{id}
+Delete Folder
+
+Delete a folder and its subfolders
+
+
+curl -X DELETE -d "https://api.jotform.com/folder/{folderID}?apiKey={apiKey}"
+
+Sample Response
+Parameter	Description	Test Console
+apikey
+String	Jotform User API Key
+Get a new API Key	
+apikey
+
+id
+String	ID of the folder	
+id
+
+ 	 	
+Try it out
+
+
+
+
+GET /system/plan/{planName}
+Get details of a plan
+
+Get limit and prices of a plan.
+
+
+curl -X GET "https://api.jotform.com/system/plan/FREE"
+
+Sample Response
+Parameter	Description	Test Console
+planName
+String	Name of the requested plan. FREE, BRONZE etc.	
+planName
+FREE
+BRONZE
+SILVER
+GOLD
+PLATINUM
+
+ 	 	
+Try it out
+
+
+
+Jotform
+
+Create a Form
+My Workspace
+Pricing
+Jotform Enterprise
+Examples
+Products
+Features
+Tools
+AI Tools
+Alternatives
+
+Marketplace
+
+Templates
+Form Themes
+Form Widgets
+Integrations
+
+Support
+
+Contact Us
+User Guide
+Help
+Jotform Academy
+Webinars
+Professional Services
+Report Abuse
+Report Copyright Issue
+Recover Jotform Account
+
+Company
+
+About Us
+Media Kit
+In the News
+Newsletters
+Partnerships
+Blog
+Customer Stories
+
+Apps
+
+4 Embarcadero Center, Suite 780, San Francisco CA 94111
+
+© 2025 Jotform Inc. The name "Jotform" and the Jotform logo are registered trademarks of Jotform Inc.
+
+English
+Español
+Français
+Italiano
+Português
+Deutsch
+Türkçe
+Nederlands
+Svenska - Beta
+Norsk - Beta
+Suomi
+Polski
+Pусский - Beta
+日本語
+български
+Српски
+ქართველი
+Indonesian
+العربية
+한국어
+繁體中文 - Beta
+Afrikaans - Beta
+Hebrew - Beta
+Terms & Conditions
+Privacy Policy
+Security
+Accessibility Statement

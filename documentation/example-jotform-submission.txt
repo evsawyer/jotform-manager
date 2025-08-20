@@ -1,0 +1,227 @@
+{
+  "success": true,
+  "submissionId": "6313669433267634627",
+  "curlCommand": "curl -X GET \"https://api.jotform.com/submission/6313669433267634627?apiKey=YOUR_API_KEY\"",
+  "data": {
+    "responseCode": 200,
+    "message": "success",
+    "content": {
+      "id": "6313669433267634627",
+      "form_id": "252295991684170",
+      "ip": "2600:1700:420:354f:94ce:d6b3:306f:e2d3",
+      "created_at": "2025-08-18 18:55:44",
+      "status": "ACTIVE",
+      "new": "1",
+      "flag": "0",
+      "notes": "",
+      "updated_at": null,
+      "answers": {
+        "2": {
+          "name": "submit2",
+          "order": "27",
+          "text": "Submit",
+          "type": "control_button"
+        },
+        "4": {
+          "name": "eligibility_question_1",
+          "order": "11",
+          "text": "Are you 18 years of age or older?",
+          "type": "control_radio",
+          "answer": "Yes"
+        },
+        "5": {
+          "name": "eligibility_question_2",
+          "order": "12",
+          "text": "Did you make a purchase on https://www.elfcosmetics.com in the last 2 years?",
+          "type": "control_radio",
+          "answer": "Yes"
+        },
+        "6": {
+          "name": "eligibility_question_3",
+          "order": "13",
+          "text": "Did you live in California when you made the purchase?",
+          "type": "control_radio",
+          "answer": "Yes"
+        },
+        "7": {
+          "name": "pageBreak",
+          "order": "19",
+          "text": "Page Break",
+          "type": "control_pagebreak"
+        },
+        "10": {
+          "name": "name",
+          "order": "15",
+          "sublabels": "{\"prefix\":\"Prefix\",\"first\":\"First Name\",\"middle\":\"Middle Name\",\"last\":\"Last Name\",\"suffix\":\"Suffix\"}",
+          "text": "Name",
+          "type": "control_fullname",
+          "answer": {
+            "first": "Johnfd",
+            "last": "Smithdf"
+          },
+          "prettyFormat": "Johnfd Smithdf"
+        },
+        "11": {
+          "name": "address",
+          "order": "16",
+          "sublabels": "{\"addr_line1\":\"Street Address\",\"addr_line2\":\"Street Address Line 2\",\"city\":\"City\",\"state\":\"State\",\"postal\":\"Zip Code\",\"country\":\"Country\"}",
+          "text": "Address",
+          "type": "control_address",
+          "answer": {
+            "addr_line1": "111 Pine Street",
+            "addr_line2": "",
+            "city": "San Francisco",
+            "state": "Alabama",
+            "postal": "94111"
+          },
+          "prettyFormat": "Street Address: 111 Pine Street\u003Cbr\u003ECity: San Francisco\u003Cbr\u003EState: Alabama\u003Cbr\u003EZip Code: 94111\u003Cbr\u003E"
+        },
+        "12": {
+          "name": "email",
+          "order": "17",
+          "text": "Email",
+          "type": "control_email",
+          "answer": "john@examjyple.com"
+        },
+        "13": {
+          "countryCode": "No",
+          "inputMask": "enable",
+          "inputMaskValue": "(###) ###-####",
+          "name": "phoneNumber",
+          "order": "18",
+          "sublabels": "{\"country\":\"Country Code\",\"area\":\"Area Code\",\"phone\":\"Phone Number\",\"full\":\"Phone Number\",\"masked\":\"Please enter a valid phone number.\"}",
+          "text": "Phone Number",
+          "type": "control_phone",
+          "answer": {
+            "full": "(999) 999-9999"
+          },
+          "prettyFormat": "(999) 999-9999"
+        },
+        "17": {
+          "name": "input17",
+          "order": "20",
+          "text": "\u003Cp\u003E\u003Cstrong\u003EOne Step to go...\u003C/strong\u003E\u003C/p\u003E\r\n\u003Cp\u003EYou will electronically sign our Contigency Fee Agreement, which means:\u003C/p\u003E\r\n\u003Cul style=\"list-style-type: disc;\"\u003E\r\n\u003Cli\u003ENo upfront costs or out-of-pocket payments.\u003C/li\u003E\r\n\u003Cli\u003EWe never ask for credit card or payment information.\u003C/li\u003E\r\n\u003Cli\u003EOur fee is a percentage of what we recover for you.\u003C/li\u003E\r\n\u003Cli\u003EIf we don't win, you pay nothing.\u003C/li\u003E\r\n\u003C/ul\u003E\r\n\u003Cp\u003E\u003Cbr /\u003E By continuing through this form, you represent that you do not own, work for, represent, or contemplate representing the company that is the subject of this arbitration.\u003C/p\u003E\r\n\u003Cp\u003E\u003Cbr /\u003E We consider the following retainer agreement attorney work product and privileged.\u003C/p\u003E\r\n\u003Cp\u003E\u003Cbr /\u003E Any employee of a law firm viewing this document and not seeking representation \u003Cbr /\u003E is in violation of the Model Rules of Professional Conduct, including, but not limited to Rule 4.1.\u003C/p\u003E",
+          "type": "control_text"
+        },
+        "20": {
+          "name": "pageBreak20",
+          "order": "21",
+          "text": "Page Break",
+          "type": "control_pagebreak"
+        },
+        "24": {
+          "name": "input24",
+          "order": "14",
+          "text": "\u003Cp\u003E\u003Cspan style=\"font-size: 14pt;\"\u003E\u003Cstrong\u003E✅ You May Qualify! Let's Get Started\u003C/strong\u003E\u003C/span\u003E\u003C/p\u003E\r\n\u003Cp\u003EThis will cost you nothing out of pocket. We get paid only if we recover an award or settlement on your behalf. If we don't win, you don't pay.\u003C/p\u003E\r\n\u003Cp\u003E\u003Cspan style=\"font-size: 14pt;\"\u003E\u003Cstrong\u003ETo continue, please provide your contact information.\u003C/strong\u003E\u003C/span\u003E\u003C/p\u003E\r\n\u003Cp\u003EYour privacy and the protection of your data are important to us. We will only use your information to pursue this claim on your behalf. For more information, please see our privacy policy.\u003C/p\u003E",
+          "type": "control_text"
+        },
+        "29": {
+          "name": "retainer0",
+          "order": "22",
+          "text": "\u003Cp\u003E\u003Cstrong\u003EClient Name\u003C/strong\u003E: Johnfd Smithdf\u003C/p\u003E\r\n\u003Cp\u003E\u003Cstrong\u003EClient Email:\u003C/strong\u003E john@examjyple.com\u003C/p\u003E\r\n\u003Cp\u003ERe: \u003Cstrong\u003EJohnfd Smithdf v. e.l.f. Cosmetics, Inc.\u003C/strong\u003E\u003C/p\u003E\r\n\u003Cp\u003EDear Johnfd Smithdf\u003C/p\u003E\r\n\u003Cp\u003EThis is an agreement (the “Agreement”) between you, Bryson Harris Suciu & DeMay PLLC (“Bryson”), and Milberg Coleman Bryson Phillips Grossman LLC (“MCBPG”) (collectively, the “Firm”) for legal representation regarding your claim(s) against e.l.f. Cosmetics, Inc. (“e.l.f.”) for its violation of your privacy rights pursuant to the California Invasion of Privacy Act (“CIPA”).\u003C/p\u003E\r\n\u003Cp\u003E\u003Cbr /\u003EYou understand and authorize the Firm to proceed with filing your claim(s) as an individual arbitration. Arbitration is a simplified means of pursuing legal claims, where the claim is decided by an arbitrator rather than a judge or jury. You authorize the Firm to settle your individual claim(s) with e.l.f. for a reasonable amount and execute a release of your individual claim(s) on your behalf. However, this agreement also authorizes the Firm to settle and release your claim(s) as a part of a class action if e.l.f. chooses to do so. In the event that the Firm enters a settlement with your authority and you choose not to participate in the settlement, you may reject the settlement and the Firm may withdraw its representation of you. You further authorize the Firm to represent additional individuals who have claims that are the same or similar to yours against e.l.f.\u003C/p\u003E\r\n\u003Cp\u003E\u003Cbr /\u003EThe Firm will handle this matter with a contingent fee of the greater of either forty percent (40%), as allowed by state law, of any recovery obtained in this matter or total attorneys’ fees awarded by the arbitrator or court. The Firm reserves the right to associate with co-counsel, but the fee will be split between the Firm and any additional firm(s) they associate with.\u003C/p\u003E\r\n\u003Cp\u003E\u003Cbr /\u003EThe Firm will advance all costs incurred by the Firm during this litigation (e.g., filing fees, travel, etc.). The Firm will be reimbursed for these costs if, and only if, they ultimately obtain a recovery on your behalf. Advanced costs are deducted after the calculation of the contingent fee.\u003C/p\u003E\r\n\u003Cp\u003E\u003Cbr /\u003EThe Firm will keep you informed about the progress of your claim as it moves forward. We will do so via phone calls, emails, and SMS messages. By signing this retainer agreement, you consent to the Firm calling and sending case-related SMS messages to the cell phone number you provided when signing up for representation. If at any time you no longer wish to receive phone calls from the Firm, you can email us at arbitration.clientcare@brysonpllc.com. Similarly, if you no longer wish to receive SMS messages from the Firm, you can reply “STOP” to any SMS message to opt out of receiving additional messages.\u003C/p\u003E\r\n\u003Cp\u003E\u003Cbr /\u003EYou authorize the Firm to withdraw from representation if they determine for sufficient reasons that your claim(s) should not continue. Regardless, the Firm will maintain the file on this matter for at least six years. If requested, these will be returned to you after the conclusion of the representation.\u003C/p\u003E\r\n\u003Cp\u003E\u003Cbr /\u003EFinally, the Firm does not make any promises or guarantees regarding the outcome of your claim(s). If you have any questions about the foregoing, please advise. We would appreciate your returning a signed copy of this engagement letter to us for our files.\u003C/p\u003E\r\n\u003Cp\u003ESincerely,\u003C/p\u003E\r\n\u003Cp\u003E\u003Cimg src=\"https://www.jotform.com/uploads/ScoutAdmin/form_files/blf_signature.689e4da60f7c54.72536971.png\" alt=\"\" width=\"229\" height=\"57\" /\u003E\u003C/p\u003E",
+          "type": "control_text"
+        },
+        "30": {
+          "name": "signature",
+          "order": "24",
+          "selectedField": "528c8b8186659c5616000004",
+          "text": "Signature*",
+          "type": "control_signature",
+          "answer": "https://www.jotform.com/uploads/ScoutAdmin/252295991684170/6313669433267634627/6313669433267634627_signature_30.png"
+        },
+        "31": {
+          "name": "retainer1",
+          "order": "23",
+          "text": "\u003Cp\u003E\u003Cstrong\u003ECERTIFICATION\u003C/strong\u003E\u003C/p\u003E\r\n\u003Cp\u003EI, the undersigned, hereby certify that I had an account with e.l.f. and visited www.elfCosmetics.com within the last two years and made a purchase on the website. I further certify that, if needed, I can and will produce evidence (for example, an email or account screenshot) making a purchase from www.elfCosmetics.com within the last two years.\u003C/p\u003E\r\n\u003Cp\u003E\u003Cbr /\u003EI further certify that I have not retained any other law firm(s) to pursue my claim(s) against e.l.f. and that I will not retain any other law firm(s) to do so. I understand that, if I do retain or have retained another law firm to pursue my claim(s), the Firm may terminate their representation of me in connection with my claim(s) against e.l.f.\u003C/p\u003E\r\n\u003Cp\u003E\u003Cstrong\u003ECOMMUNICATIONS CONSENT\u003C/strong\u003E\u003C/p\u003E\r\n\u003Cp\u003EI, the undersigned, hereby consent to the Firm keeping me informed about the progress of my claim by calling, emailing, and sending case-related SMS messages to the cell phone number that I provided to the Firm when signing up for representation. I understand that, if at any time I no longer wish to receive phone calls from the Firm, I can email arbitration.clientcare@brysonpllc.com. I also understand that, if I no longer wish to receive SMS messages from the Firm, I can reply “STOP” to any SMS message to opt out of receiving additional messages.\u003C/p\u003E\r\n\u003Cp\u003E\u003Cbr /\u003EAdditionally, I consent to the Firm calling, emailing, and sending me SMS messages concerning other matters, lawsuits, and investigations that may be relevant or of interest to me.\u003C/p\u003E",
+          "type": "control_text"
+        },
+        "33": {
+          "name": "retainer2",
+          "order": "25",
+          "text": "\u003Cp\u003E* Please note that the company against which you are retaining the Firm to pursue individual arbitration claims on your behalf may require submission of a notice letter personally signed by you to begin the dispute resolution process. So that the Firm can start this process, by signing the retainer agreement, it is your intent to provide the Firm with your electronic signature and your consent to include your electronic signature in the notice letter to be sent on your behalf to the company identified in the retainer agreement as the party against whom the Firm has agreed to represent you in connection with your individual arbitration. This is the sole limited purpose for which you are giving the Firm legal authority to utilize your electronic signature.\u003C/p\u003E",
+          "type": "control_text"
+        },
+        "34": {
+          "name": "utm_campaign",
+          "order": "1",
+          "text": "utm_campaign",
+          "type": "control_textbox"
+        },
+        "35": {
+          "name": "utm_source",
+          "order": "2",
+          "text": "utm_source",
+          "type": "control_textbox"
+        },
+        "36": {
+          "name": "utm_medium",
+          "order": "3",
+          "text": "utm_medium",
+          "type": "control_textbox"
+        },
+        "37": {
+          "name": "utm_term",
+          "order": "4",
+          "text": "utm_term",
+          "type": "control_textbox"
+        },
+        "38": {
+          "name": "utm_content",
+          "order": "5",
+          "text": "utm_content",
+          "type": "control_textbox"
+        },
+        "39": {
+          "name": "client_id",
+          "order": "6",
+          "text": "client_id",
+          "type": "control_textbox",
+          "answer": "10001"
+        },
+        "40": {
+          "name": "project_id",
+          "order": "7",
+          "text": "project_id",
+          "type": "control_textbox",
+          "answer": "12208308"
+        },
+        "41": {
+          "name": "case_type",
+          "order": "8",
+          "text": "case_type",
+          "type": "control_textbox",
+          "answer": "CA"
+        },
+        "42": {
+          "cfname": "Get User Agent",
+          "name": "typeA",
+          "order": "9",
+          "selectedField": "543ea3eb3066feaa30000036",
+          "static": "No",
+          "text": "User Agent String",
+          "type": "control_widget",
+          "answer": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"
+        },
+        "43": {
+          "cfname": "Geo Stamp",
+          "name": "typeA43",
+          "order": "10",
+          "selectedField": "5935688a725d1797050002e7",
+          "static": "No",
+          "text": "Geo Stamp",
+          "type": "control_widget",
+          "answer": "2025-08-18 03:55PM -0700\nStreet: 2433 Camino del Rio South\nCity: San Diego\nRegion: California\nCounty: San Diego County\nCountry: United States\nCountry Code: US\nZip Code: 92108\nLatitude: 32.7698997757184\nLongitude: -117.13269549242655"
+        },
+        "47": {
+          "name": "pleaseVerify",
+          "order": "26",
+          "text": "Please verify that you are human",
+          "type": "control_captcha"
+        }
+      }
+    },
+    "duration": "119.64ms",
+    "info": null,
+    "limit-left": 49991
+  }
+}

@@ -62,7 +62,7 @@
     { "name": "utm_content", "text": "utm_content" },
     { "name": "client_id", "text": "client_id", "defaultValue": "10001", "readonly": true },
     { "name": "project_id", "text": "project_id", "defaultValue": "12208308", "readonly": true },
-    { "name": "case_type", "text": "case_type" }
+    { "name": "case_type", "text": "case_type", "defaultValue": "MA", "readonly": true  }
   ],
   "emailNotification": {
     "to": "notifications@lawfirm.com",

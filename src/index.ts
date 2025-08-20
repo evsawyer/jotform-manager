@@ -1,7 +1,10 @@
 /**
- * JotForm Manager - Cloudflare Worker
+ * JotForm Manager - Cloudflare Worker with Hono
  * Creates JotForms dynamically based on configuration
  */
+
+import { Hono } from 'hono';
+import { cors } from 'hono/cors';
 
 interface Env {
 	JOTFORM_API_KEY: string;
@@ -149,77 +152,44 @@ interface JotFormQuestion {
 	[key: string]: any;
 }
 
-export default {
-	async fetch(request, env, ctx): Promise<Response> {
-		const url = new URL(request.url);
-		
-		// Enable CORS
-		const corsHeaders = {
-			'Access-Control-Allow-Origin': '*',
-			'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-			'Access-Control-Allow-Headers': 'Content-Type',
-		};
+const app = new Hono<{ Bindings: Env }>();
 
-		// Handle CORS preflight
-		if (request.method === 'OPTIONS') {
-			return new Response(null, { headers: corsHeaders });
-		}
+// Enable CORS
+app.use('*', cors({
+	origin: '*',
+	allowMethods: ['GET', 'POST', 'OPTIONS'],
+	allowHeaders: ['Content-Type'],
+}));
 
-		switch (url.pathname) {
-			case '/create-form':
-				if (request.method !== 'POST') {
-					return new Response('Method not allowed', { 
-						status: 405,
-						headers: corsHeaders 
-					});
-				}
-				return handleCreateForm(request, env, corsHeaders);
-			
-			case '/update-form':
-				if (request.method !== 'POST') {
-					return new Response('Method not allowed', { 
-						status: 405,
-						headers: corsHeaders 
-					});
-				}
-				return handleUpdateForm(request, env, corsHeaders);
-			
-			case '/create-form-from-template':
-				if (request.method !== 'POST') {
-					return new Response('Method not allowed', { 
-						status: 405,
-						headers: corsHeaders 
-					});
-				}
-				return handleCreateFormFromTemplate(request, env, corsHeaders);
-			
-			case '/message':
-				return new Response('Hello, World!', { headers: corsHeaders });
-			
-			case '/random':
-				return new Response(crypto.randomUUID(), { headers: corsHeaders });
-			
-			default:
-				return new Response('Not Found', { 
-					status: 404,
-					headers: corsHeaders 
-				});
-		}
-	},
-} satisfies ExportedHandler<Env>;
+// Test endpoints
+app.get('/message', (c) => c.text('Hello, World!'));
+app.get('/random', (c) => c.text(crypto.randomUUID()));
 
-async function handleCreateForm(request: Request, env: Env, corsHeaders: Record<string, string>): Promise<Response> {
+// Form creation endpoints
+app.post('/create-form', async (c) => {
+	const config: FormConfig = await c.req.json();
+	return handleCreateForm(config, c.env);
+});
+
+app.post('/update-form', async (c) => {
+	const config: UpdateFormConfig = await c.req.json();
+	return handleUpdateForm(config, c.env);
+});
+
+app.post('/create-form-from-template', async (c) => {
+	const config: TemplateFormConfig = await c.req.json();
+	return handleCreateFormFromTemplate(config, c.env);
+});
+
+export default app;
+
+async function handleCreateForm(config: FormConfig, env: Env) {
 	try {
-		const config: FormConfig = await request.json();
-		
 		// Use API key from config if provided, otherwise use environment secret
 		const apiKey = config.apiKey || env.JOTFORM_API_KEY;
 		
 		if (!apiKey) {
-			return new Response(JSON.stringify({ error: 'API key not configured' }), {
-				status: 400,
-				headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-			});
+			return Response.json({ error: 'API key not configured' }, { status: 400 });
 		}
 
 		// Build questions array
@@ -581,13 +551,10 @@ async function handleCreateForm(request: Request, env: Env, corsHeaders: Record<
 
 		if (!jotformResponse.ok) {
 			const errorText = await jotformResponse.text();
-			return new Response(JSON.stringify({ 
+			return Response.json({ 
 				error: 'Failed to create form',
 				details: errorText 
-			}), {
-				status: jotformResponse.status,
-				headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-			});
+			}, { status: jotformResponse.status });
 		}
 
 		const result = await jotformResponse.json() as any;
@@ -609,47 +576,33 @@ async function handleCreateForm(request: Request, env: Env, corsHeaders: Record<
 			}
 		}
 		
-		return new Response(JSON.stringify({
+		return Response.json({
 			success: true,
 			formId: result.content?.id,
 			formUrl: result.content?.url,
 			webhookAdded: !!config.webhookURL,
 			data: result
-		}), {
-			status: 200,
-			headers: { ...corsHeaders, 'Content-Type': 'application/json' }
 		});
 
 	} catch (error) {
-		return new Response(JSON.stringify({ 
+		return Response.json({ 
 			error: 'Internal server error',
 			message: error instanceof Error ? error.message : 'Unknown error'
-		}), {
-			status: 500,
-			headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-		});
+		}, { status: 500 });
 	}
 }
 
-async function handleUpdateForm(request: Request, env: Env, corsHeaders: Record<string, string>): Promise<Response> {
+async function handleUpdateForm(config: UpdateFormConfig, env: Env) {
 	try {
-		const config: UpdateFormConfig = await request.json();
-		
 		// Use API key from config if provided, otherwise use environment secret
 		const apiKey = config.apiKey || env.JOTFORM_API_KEY;
 		
 		if (!apiKey) {
-			return new Response(JSON.stringify({ error: 'API key not configured' }), {
-				status: 400,
-				headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-			});
+			return Response.json({ error: 'API key not configured' }, { status: 400 });
 		}
 
 		if (!config.formId) {
-			return new Response(JSON.stringify({ error: 'Form ID is required' }), {
-				status: 400,
-				headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-			});
+			return Response.json({ error: 'Form ID is required' }, { status: 400 });
 		}
 
 		let jotformResponse;
@@ -657,10 +610,7 @@ async function handleUpdateForm(request: Request, env: Env, corsHeaders: Record<
 		switch (config.updateType) {
 			case 'properties':
 				if (!config.properties) {
-					return new Response(JSON.stringify({ error: 'Properties data required for properties update' }), {
-						status: 400,
-						headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-					});
+					return Response.json({ error: 'Properties data required for properties update' }, { status: 400 });
 				}
 				
 				// Update form properties
@@ -717,22 +667,16 @@ async function handleUpdateForm(request: Request, env: Env, corsHeaders: Record<
 					});
 				} else {
 					// Just return success for question updates/deletions
-					return new Response(JSON.stringify({
+					return Response.json({
 						success: true,
 						message: 'Questions updated successfully'
-					}), {
-						status: 200,
-						headers: { ...corsHeaders, 'Content-Type': 'application/json' }
 					});
 				}
 				break;
 				
 			case 'conditions':
 				if (!config.conditions) {
-					return new Response(JSON.stringify({ error: 'Conditions data required for conditions update' }), {
-						status: 400,
-						headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-					});
+					return Response.json({ error: 'Conditions data required for conditions update' }, { status: 400 });
 				}
 				
 				// Format conditions for JotForm API
@@ -768,64 +712,44 @@ async function handleUpdateForm(request: Request, env: Env, corsHeaders: Record<
 				break;
 				
 			default:
-				return new Response(JSON.stringify({ error: 'Invalid update type. Must be: properties, questions, or conditions' }), {
-					status: 400,
-					headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-				});
+				return Response.json({ error: 'Invalid update type. Must be: properties, questions, or conditions' }, { status: 400 });
 		}
 
 		if (!jotformResponse.ok) {
 			const errorText = await jotformResponse.text();
-			return new Response(JSON.stringify({ 
+			return Response.json({ 
 				error: 'Failed to update form',
 				details: errorText 
-			}), {
-				status: jotformResponse.status,
-				headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-			});
+			}, { status: jotformResponse.status });
 		}
 
 		const result = await jotformResponse.json() as any;
 		
-		return new Response(JSON.stringify({
+		return Response.json({
 			success: true,
 			message: `Form ${config.updateType} updated successfully`,
 			data: result
-		}), {
-			status: 200,
-			headers: { ...corsHeaders, 'Content-Type': 'application/json' }
 		});
 
 	} catch (error) {
-		return new Response(JSON.stringify({ 
+		return Response.json({ 
 			error: 'Internal server error',
 			message: error instanceof Error ? error.message : 'Unknown error'
-		}), {
-			status: 500,
-			headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-		});
+		}, { status: 500 });
 	}
 }
 
-async function handleCreateFormFromTemplate(request: Request, env: Env, corsHeaders: Record<string, string>): Promise<Response> {
+async function handleCreateFormFromTemplate(config: TemplateFormConfig, env: Env) {
 	try {
-		const config: TemplateFormConfig = await request.json();
-		
 		// Use API key from config if provided, otherwise use environment secret
 		const apiKey = config.apiKey || env.JOTFORM_API_KEY;
 		
 		if (!apiKey) {
-			return new Response(JSON.stringify({ error: 'API key not configured' }), {
-				status: 400,
-				headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-			});
+			return Response.json({ error: 'API key not configured' }, { status: 400 });
 		}
 
 		if (!config.templateFormId) {
-			return new Response(JSON.stringify({ error: 'Template form ID is required' }), {
-				status: 400,
-				headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-			});
+			return Response.json({ error: 'Template form ID is required' }, { status: 400 });
 		}
 
 		// Step 1: Clone the template form
@@ -835,26 +759,20 @@ async function handleCreateFormFromTemplate(request: Request, env: Env, corsHead
 
 		if (!cloneResponse.ok) {
 			const errorText = await cloneResponse.text();
-			return new Response(JSON.stringify({ 
+			return Response.json({ 
 				error: 'Failed to clone template form',
 				details: errorText 
-			}), {
-				status: cloneResponse.status,
-				headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-			});
+			}, { status: cloneResponse.status });
 		}
 
 		const cloneResult = await cloneResponse.json() as any;
 		const newFormId = cloneResult.content?.id;
 
 		if (!newFormId) {
-			return new Response(JSON.stringify({ 
+			return Response.json({ 
 				error: 'Failed to get new form ID from clone response',
 				details: cloneResult 
-			}), {
-				status: 500,
-				headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-			});
+			}, { status: 500 });
 		}
 
 		// Step 2: Update the cloned form's title
@@ -1089,13 +1007,10 @@ async function handleCreateFormFromTemplate(request: Request, env: Env, corsHead
 
 		if (!updateQuestionsResponse.ok) {
 			const errorText = await updateQuestionsResponse.text();
-			return new Response(JSON.stringify({ 
+			return Response.json({ 
 				error: 'Failed to update questions in cloned form',
 				details: errorText 
-			}), {
-				status: updateQuestionsResponse.status,
-				headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-			});
+			}, { status: updateQuestionsResponse.status });
 		}
 
 		// Step 5: Add webhook if specified
@@ -1118,7 +1033,7 @@ async function handleCreateFormFromTemplate(request: Request, env: Env, corsHead
 		const finalFormResponse = await fetch(`https://api.jotform.com/form/${newFormId}?apiKey=${apiKey}`);
 		const finalFormResult = await finalFormResponse.json() as any;
 
-		return new Response(JSON.stringify({
+		return Response.json({
 			success: true,
 			message: 'Form created from template successfully',
 			formId: newFormId,
@@ -1126,18 +1041,12 @@ async function handleCreateFormFromTemplate(request: Request, env: Env, corsHead
 			templateFormId: config.templateFormId,
 			webhookAdded: !!config.webhookURL,
 			data: finalFormResult
-		}), {
-			status: 200,
-			headers: { ...corsHeaders, 'Content-Type': 'application/json' }
 		});
 
 	} catch (error) {
-		return new Response(JSON.stringify({ 
+		return Response.json({ 
 			error: 'Internal server error',
 			message: error instanceof Error ? error.message : 'Unknown error'
-		}), {
-			status: 500,
-			headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-		});
+		}, { status: 500 });
 	}
 }
